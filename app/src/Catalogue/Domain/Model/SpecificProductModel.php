@@ -4,31 +4,41 @@ declare(strict_types=1);
 
 namespace App\Catalogue\Domain\Model;
 
-use App\Common\Domain\Model\IdentifierBigInt;
-use App\Common\Domain\Model\Interfaces\IdentifierInterface;
+use App\Catalogue\Domain\Model\ValueObjects\ProductId;
+use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Common\Domain\Model\ValueObject\CodeEan;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Embedded;
 use Symfony\Component\Clock\ClockAwareTrait;
+use Symfony\Component\Serializer\Attribute\Ignore;
 
 #[ORM\Table(name: 't_salesSpecificProductModel')]
 #[ORM\Entity()]
+#[ORM\HasLifecycleCallbacks]
 class SpecificProductModel
 {
     use ClockAwareTrait;
 
-    #[Embedded(class: IdentifierBigInt::class, columnPrefix: "specificProductModel")]
-    private ?IdentifierInterface $id = null;
+    #[Embedded(class: SpecificProductId::class, columnPrefix: "specificProductModel")]
+    private ?SpecificProductId $id = null;
 
     #[Embedded(class: CodeEan::class, columnPrefix: false)]
     private CodeEan $codeEan;
 
-    #[ORM\ManyToOne(targetEntity: Product::class)]
+    #[ORM\ManyToOne(targetEntity: Product::class, cascade: ['persist', 'merge', 'remove'])]
     #[ORM\JoinColumn(name: 'productId', referencedColumnName: 'productId')]
     private Product $product;
 
     #[ORM\Column(name: 'discontinued', type: 'datetimetz', nullable: true)]
     private ?\DateTimeImmutable $discontinued = null;
+
+    #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', updatable: false)]
+    #[Ignore]
+    private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column(name: 'updatedAt', type: 'datetime_immutable', nullable: true)]
+    #[Ignore]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     private function __construct(Product $product, CodeEan $codeEan)
     {
@@ -43,7 +53,7 @@ class SpecificProductModel
         return $product;
     }
 
-    public function getId(): IdentifierInterface
+    public function getId(): ?SpecificProductId
     {
         return $this->id;
     }
@@ -53,7 +63,7 @@ class SpecificProductModel
         return $this->codeEan;
     }
 
-    public function getProductId(): IdentifierInterface
+    public function getProductId(): ProductId
     {
         return $this->product->getId();
     }
@@ -76,5 +86,17 @@ class SpecificProductModel
         }
 
         $this->discontinued = $discontinuation;
+    }
+
+    #[ORM\PrePersist]
+    public function doOnPrePersist()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function doOnPreUpdate()
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 }

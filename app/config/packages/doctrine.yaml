@@ -10,6 +10,8 @@ doctrine:
             collate: 'utf8mb4_general_ci'
 
         profiling_collect_backtrace: '%kernel.debug%'
+        types:
+            product_id: App\Common\DBAL\Types\ProductIdType
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
@@ -36,6 +38,7 @@ when@test:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+            use_savepoints: true
 
 when@prod:
     doctrine:
