@@ -1,0 +1,79 @@
+services:
+  factory-db:
+    container_name: factory-db-c
+    image: mysql
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWD}
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_USER_FILE=/run/secrets/db_user
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_pass
+      - MYSQL_DATABASE=${DB_NAME}
+    volumes:
+      - 'factory-db:/var/lib/mysql:rw'
+    networks:
+      - factory-network
+    secrets:
+      - db_user
+      - db_pass
+
+  factory-php:
+    container_name: factory-php-c
+    image: factory-php:rc1
+    command: [ /var/www/init.sh ]
+    build:
+      context: .
+      dockerfile: DockerPHP/Dockerfile
+    environment:
+      - APP_ENV=dev
+      - APP_SECRET_FILE=/run/secrets/app_secret
+      - DB_USER_FILE=/run/secrets/db_user
+      - DB_PASS_FILE=/run/secrets/db_pass
+      - DATABASE_HOST=factory-db
+      - DATABASE_NAME=${DB_NAME}
+    restart: always
+    volumes:
+      - 'factory-core:/var/www/html:rw'
+      - './DockerPHP/init-php.sh:/var/www/init-php.sh:r'
+    networks:
+      - factory-network
+    depends_on:
+      - factory-db
+    secrets:
+      - app_secret
+      - db_user
+      - db_pass
+
+  factory-nginx:
+    container_name: factory-nginx-c
+    image: factory-nginx:rc1
+    build:
+      context: .
+      dockerfile: DockerNginx/Dockerfile
+    restart: always
+    ports:
+      - 127.0.0.1:8088:80
+    volumes:
+      - 'factory-core:/var/www/html:rw'
+    networks:
+      - factory-network
+    depends_on:
+      - factory-php
+
+volumes:
+  factory-db:
+    name: 'factory-db-name'
+  factory-core:
+    name: 'factory-core-name'
+
+networks:
+  factory-network:
+
+secrets:
+  app_secret:
+    file: ./app_secret.txt
+  db_user:
+    file: ./db_user.txt
+  db_pass:
+    file: ./db_pass.txt

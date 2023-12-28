@@ -1,0 +1,6 @@
+services:
+  factory-php:
+    restart: no
+    volumes:
+      - './app:/var/www/html:rw'
+      - './DockerPHP/init-php-test.sh:/var/www/init-php.sh:r'

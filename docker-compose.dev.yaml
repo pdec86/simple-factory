@@ -1,0 +1,9 @@
+services:
+  factory-php:
+    volumes:
+      - './app:/var/www/html:rw'
+      - './DockerPHP/init-php-dev.sh:/var/www/init-php.sh:r'
+  
+  factory-nginx:
+    volumes:
+      - './app:/var/www/html:r'
