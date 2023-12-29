@@ -113,16 +113,6 @@ abstract class BarcodeEanBase
         return $this->gdImage;
     }
 
-    public function finalize(): void
-    {
-        imagedestroy($this->gdImage);
-    }
-
-    public function __destruct()
-    {
-        $this->finalize();
-    }
-
     abstract protected function encode(): array;
 
     abstract protected function drawText(): void;
