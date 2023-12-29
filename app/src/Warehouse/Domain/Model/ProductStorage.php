@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Catalogue\Domain\Model;
+namespace App\Warehouse\Domain\Model;
 
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Warehouse\Domain\Model\ValueObjects\ProductStorageId;
@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping\Embedded;
 use Symfony\Component\Clock\ClockAwareTrait;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
-#[ORM\Table(name: 't_warehouseStorageSpace')]
+#[ORM\Table(name: 't_warehouseProductStorage')]
 #[ORM\Entity()]
 #[ORM\HasLifecycleCallbacks]
 class ProductStorage

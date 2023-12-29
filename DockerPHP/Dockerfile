@@ -6,10 +6,11 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 RUN apt-get update && apt-get install -y git
 RUN apt-get install -y libzip-dev zip && docker-php-ext-install zip
 
-RUN apt-get install -y libpq-dev libicu-dev \
+RUN apt-get install -y libpq-dev libicu-dev libpng-dev libfreetype-dev \
     && pecl install ds redis-5.3.7 \
-    && docker-php-ext-install bcmath pdo pdo_mysql intl \
-    && docker-php-ext-enable ds bcmath pdo_mysql redis sodium opcache
+    && docker-php-ext-configure gd --with-freetype \
+    && docker-php-ext-install gd bcmath pdo pdo_mysql intl \
+    && docker-php-ext-enable ds gd bcmath pdo_mysql redis sodium opcache
 
 #RUN apt-get update && \
 #  apt-get install -y ca-certificates curl gnupg && \

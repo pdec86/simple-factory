@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Catalogue\Domain\Model;
+namespace App\Warehouse\Domain\Model;
 
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Warehouse\Domain\Model\Exceptions\StorageAreaOccupiedException;

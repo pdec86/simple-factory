@@ -1,5 +1,5 @@
-# controllers:
-    # resource:
-        # path: ../src/Controller/
-        # namespace: App\Controller
-    # type: attribute
+catalogue_controllers:
+    resource:
+        path: ../src/Catalogue/Infrastructure/Controller/
+        namespace: App\Catalogue\Infrastructure\Controller
+    type: attribute

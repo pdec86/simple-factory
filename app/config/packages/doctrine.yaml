@@ -32,6 +32,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Catalogue/Domain/Model'
                 prefix: 'App\Catalogue\Domain\Model'
                 alias: CatalogueModel
+            WarehouseModel:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Warehouse/Domain/Model'
+                prefix: 'App\Warehouse\Domain\Model'
+                alias: WarehouseModel
 
 when@test:
     doctrine:
