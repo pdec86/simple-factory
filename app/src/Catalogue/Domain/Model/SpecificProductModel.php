@@ -6,14 +6,16 @@ namespace App\Catalogue\Domain\Model;
 
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
+use App\Catalogue\Infrastructure\Repository\SpecificProductModelRepository;
 use App\Common\Domain\Model\ValueObject\CodeEan;
+use App\Common\Domain\Model\ValueObject\Dimensions;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Embedded;
 use Symfony\Component\Clock\ClockAwareTrait;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
 #[ORM\Table(name: 't_salesSpecificProductModel')]
-#[ORM\Entity()]
+#[ORM\Entity(repositoryClass: SpecificProductModelRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class SpecificProductModel
 {
@@ -25,7 +27,10 @@ class SpecificProductModel
     #[Embedded(class: CodeEan::class, columnPrefix: false)]
     private CodeEan $codeEan;
 
-    #[ORM\ManyToOne(targetEntity: Product::class, cascade: ['persist', 'merge', 'remove'])]
+    #[Embedded(class: Dimensions::class, columnPrefix: 'dimensions_')]
+    private Dimensions $dimensions;
+
+    #[ORM\ManyToOne(targetEntity: Product::class)]
     #[ORM\JoinColumn(name: 'productId', referencedColumnName: 'productId')]
     private Product $product;
 
@@ -46,9 +51,15 @@ class SpecificProductModel
         $this->codeEan = $codeEan;
     }
 
-    public static function createWithBasicData(Product $product, CodeEan $codeEAN): self
-    {
+    public static function createWithBasicData(
+        Product $product,
+        CodeEan $codeEAN,
+        string $length,
+        string $width,
+        string $height
+    ): self {
         $product = new self($product, $codeEAN);
+        $product->dimensions = new Dimensions($length, $width, $height);
 
         return $product;
     }
@@ -61,6 +72,21 @@ class SpecificProductModel
     public function getCodeEan(): CodeEan
     {
         return $this->codeEan;
+    }
+
+    public function getLength(): string
+    {
+        return $this->dimensions->getLength();
+    }
+
+    public function getWidth(): string
+    {
+        return $this->dimensions->getWidth();
+    }
+
+    public function getHeight(): string
+    {
+        return $this->dimensions->getHeight();
     }
 
     public function getProductId(): ProductId
@@ -91,12 +117,12 @@ class SpecificProductModel
     #[ORM\PrePersist]
     public function doOnPrePersist()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = $this->now();
     }
 
     #[ORM\PreUpdate]
     public function doOnPreUpdate()
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->now();
     }
 }

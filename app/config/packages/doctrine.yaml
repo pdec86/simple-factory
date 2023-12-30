@@ -12,6 +12,7 @@ doctrine:
         profiling_collect_backtrace: '%kernel.debug%'
         types:
             product_id: App\Common\DBAL\Types\ProductIdType
+            specific_product_id: App\Common\DBAL\Types\SpecificProductModelIdType
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
@@ -32,6 +33,12 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Catalogue/Domain/Model'
                 prefix: 'App\Catalogue\Domain\Model'
                 alias: CatalogueModel
+            FactoryModel:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Factory/Domain/Model'
+                prefix: 'App\Factory\Domain\Model'
+                alias: FactoryModel
             WarehouseModel:
                 type: attribute
                 is_bundle: false

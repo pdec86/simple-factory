@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Domain\Model;
 
-use App\Catalogue\Domain\Model\ValueObjects\ProductId;
+use App\Catalogue\Domain\Model\SpecificProductModel;
+
+use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Warehouse\Domain\Model\ValueObjects\ProductStorageId;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Embedded;
@@ -21,8 +23,10 @@ class ProductStorage
     #[Embedded(class: ProductStorageId::class, columnPrefix: "storageSpace")]
     private ?ProductStorageId $id = null;
 
-    #[ORM\Column(name: 'productId', type: 'product_id', length: 255, nullable: false)]
-    private ProductId $productId;
+    #[ORM\Column(name: 'specificProductModelId', type: 'specific_product_id', length: 255, nullable: false)]
+    private SpecificProductId $specificProductModelId;
+
+    private SpecificProductModel $specificProductModel;
 
     #[ORM\Column(name: 'areaName', type: 'string', length: 100, nullable: false)]
     private string $areaName;
@@ -30,7 +34,7 @@ class ProductStorage
     #[ORM\Column(name: 'shelf', type: 'string', length: 100, nullable: false)]
     private string $shelf;
 
-    #[ORM\Column(name: 'shelf', type: 'integer', nullable: false)]
+    #[ORM\Column(name: 'quantity', type: 'integer', nullable: false)]
     private int $quantity = 0;
 
     #[ORM\ManyToOne(targetEntity: StorageSpace::class, cascade: ['persist', 'merge', 'remove'])]
@@ -49,10 +53,15 @@ class ProductStorage
     {
     }
 
-    public static function createWithBasicData(ProductId $product, string $areaName, string $shelf, int $quantity): self
-    {
+    public static function createWithBasicData(
+        SpecificProductModel $specificProductModel,
+        string $areaName,
+        string $shelf,
+        int $quantity
+    ): self {
         $productStorage = new self();
-        $productStorage->productId = $product;
+        $productStorage->specificProductModelId = $specificProductModel->getId();
+        $productStorage->specificProductModel = $specificProductModel;
         $productStorage->changeAreaName($areaName);
         $productStorage->changeShelf($shelf);
         $productStorage->changeQuantity($quantity);
@@ -91,9 +100,9 @@ class ProductStorage
         $this->quantity = $quantity;
     }
 
-    public function getProductId(): ProductId
+    public function getSpecificProductModelId(): SpecificProductId
     {
-        return $this->productId;
+        return $this->specificProductModelId;
     }
 
     public function getAreaName(): string
@@ -109,12 +118,12 @@ class ProductStorage
     #[ORM\PrePersist]
     public function doOnPrePersist()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = $this->now();
     }
 
     #[ORM\PreUpdate]
     public function doOnPreUpdate()
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->now();
     }
 }

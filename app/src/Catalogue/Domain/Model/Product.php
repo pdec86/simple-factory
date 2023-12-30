@@ -7,6 +7,8 @@ namespace App\Catalogue\Domain\Model;
 use App\Catalogue\Domain\Model\Exceptions\NoVariantExistsException;
 use App\Catalogue\Domain\Model\Exceptions\ProductDiscontinuedException;
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
+use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
+use App\Catalogue\Infrastructure\Repository\ProductRepository;
 use App\Common\Domain\Model\ValueObject\CodeEan;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,7 +18,7 @@ use Symfony\Component\Clock\ClockAwareTrait;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
 #[ORM\Table(name: 't_salesProduct')]
-#[ORM\Entity()]
+#[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 class Product
 {
@@ -37,7 +39,7 @@ class Product
     /**
      * @var Collection<SpecificProductModel>|SpecificProductModel[]
      */
-    #[ORM\OneToMany(targetEntity: SpecificProductModel::class, mappedBy: 'product')]
+    #[ORM\OneToMany(targetEntity: SpecificProductModel::class, mappedBy: 'product', cascade: ['persist', 'merge'])]
     private Collection $variants;
 
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', updatable: false)]
@@ -120,13 +122,25 @@ class Product
         }
     }
 
-    public function addVariant(CodeEan $codeEan): void
+    public function addVariant(CodeEan $codeEan, string $length, string $witdh, string $height): void
     {
-        if (null !== $this->discontinued) {
-            $this->variants->add(SpecificProductModel::createWithBasicData($this, $codeEan));
+        if (null === $this->discontinued) {
+            $this->variants->add(SpecificProductModel::createWithBasicData($this, $codeEan, $length, $witdh, $height));
         } else {
             throw new ProductDiscontinuedException('Product has been discontinued.');
         }
+    }
+
+    public function getVariantIdByCodeEAN(CodeEan $codeEan): ?SpecificProductId
+    {
+        foreach ($this->variants as $variant)
+        { 
+            if ($variant->getCodeEan()->getCode() === $codeEan->getCode()) {
+                return $variant->getId();
+            }
+        }
+
+        return null;
     }
 
     public function getVariantDiscontinuation(CodeEan $codeEan): ?\DateTimeImmutable
@@ -143,12 +157,12 @@ class Product
     #[ORM\PrePersist]
     public function doOnPrePersist()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = $this->now();
     }
 
     #[ORM\PreUpdate]
     public function doOnPreUpdate()
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->now();
     }
 }

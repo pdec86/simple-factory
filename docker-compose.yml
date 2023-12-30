@@ -18,20 +18,36 @@ services:
       - db_user
       - db_pass
 
+  factory_messages_broker:
+    container_name: factory-messages-broker-c
+    image: factory-rabbitmq:rc1
+    build:
+      context: .
+      dockerfile: DockerRabbitMQ/Dockerfile
+    # hostname: factory_messages_broker
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWD}
+    ports:
+      - '8080:15672'
+    networks:
+      - factory-network
+
   factory-php:
     container_name: factory-php-c
     image: factory-php:rc1
-    command: [ /var/www/init.sh ]
     build:
       context: .
       dockerfile: DockerPHP/Dockerfile
     environment:
       - APP_ENV=dev
+      - APP_ENV_FILE=/run/secrets/app_env
       - APP_SECRET_FILE=/run/secrets/app_secret
       - DB_USER_FILE=/run/secrets/db_user
       - DB_PASS_FILE=/run/secrets/db_pass
       - DATABASE_HOST=factory-db
       - DATABASE_NAME=${DB_NAME}
+      - MESSENGER_TRANSPORT_DSN_FILE=/run/secrets/amqp_dsn
     restart: always
     volumes:
       - 'factory-core:/var/www/html:rw'
@@ -41,9 +57,11 @@ services:
     depends_on:
       - factory-db
     secrets:
+      - app_env
       - app_secret
       - db_user
       - db_pass
+      - amqp_dsn
 
   factory-nginx:
     container_name: factory-nginx-c
@@ -71,9 +89,13 @@ networks:
   factory-network:
 
 secrets:
+  app_env:
+    file: ./app_env.txt
   app_secret:
     file: ./app_secret.txt
   db_user:
     file: ./db_user.txt
   db_pass:
     file: ./db_pass.txt
+  amqp_dsn:
+    file: ./amqp_dsn.txt

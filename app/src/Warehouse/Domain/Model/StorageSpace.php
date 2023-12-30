@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Domain\Model;
 
-use App\Catalogue\Domain\Model\ValueObjects\ProductId;
+use App\Catalogue\Domain\Model\SpecificProductModel;
+use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Warehouse\Domain\Model\Exceptions\StorageAreaOccupiedException;
 use App\Warehouse\Domain\Model\ValueObjects\StorageSpaceId;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -75,30 +76,30 @@ class StorageSpace
         $this->name = $name;
     }
 
-    public function addProductStorage(ProductId $product, string $areaName, string $shelf, int $quantity = 0)
+    public function addProductStorage(SpecificProductModel $specificProductModel, string $areaName, string $shelf, int $quantity = 0)
     {
         foreach ($this->productsStorageSpaces as $productStorageSpace) {
             if (
                 $areaName === $productStorageSpace->getAreaName()
                 && $shelf === $productStorageSpace->getShelf()
-                && !$product->equals($productStorageSpace->getProductId())
+                && !$specificProductModel->getId()->equals($productStorageSpace->getSpecificProductModelId())
             ) {
                 throw new StorageAreaOccupiedException('Area and shelf already occupied by other product');
             }
         }
 
-        $this->productsStorageSpaces->add(ProductStorage::createWithBasicData($product, $areaName, $shelf, $quantity));
+        $this->productsStorageSpaces->add(ProductStorage::createWithBasicData($specificProductModel, $areaName, $shelf, $quantity));
     }
 
     #[ORM\PrePersist]
     public function doOnPrePersist()
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = $this->now();
     }
 
     #[ORM\PreUpdate]
     public function doOnPreUpdate()
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->now();
     }
 }
