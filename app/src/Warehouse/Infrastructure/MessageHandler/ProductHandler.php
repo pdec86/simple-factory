@@ -15,7 +15,7 @@ class ProductHandler
     }
 
     #[AsMessageHandler(fromTransport: 'manufacturing', handles: ProductOrdered::class)]
-    public function handleProductOreder(ProductOrdered $message): void
+    public function handleProductOrdered(ProductOrdered $message): void
     {
         
     }

@@ -1,11 +1,16 @@
 framework:
     messenger:
-        failure_transport: failed
         serializer:
             default_serializer: messenger.transport.symfony_serializer
             symfony_serializer:
                 format: json
-                context: {'normalizationContext': [Symfony\Component\Serializer\Normalizer\PropertyNormalizer]}
+                context: {}
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - App\Common\Messenger\AmqpMiddleware
+                    - App\Common\Messenger\AuditMiddleware
+        failure_transport: failed
 
         transports:
             # https://symfony.com/doc/current/messenger.html#transport-configuration
@@ -23,21 +28,21 @@ framework:
                         products_manufacture:
                             # name: 'products_manufacture'
                             binding_keys: ['product.ordered', 'product.manufactured']
-            # async:
-            #     dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
-            #     options:
-            #         use_notify: true
-            #         check_delayed_interval: 60000
-            #     retry_strategy:
-            #         max_retries: 3
-            #         multiplier: 2
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    use_notify: true
+                    check_delayed_interval: 60000
+                retry_strategy:
+                    max_retries: 3
+                    multiplier: 2
             failed: 'doctrine://default?queue_name=failed'
             # sync: 'sync://'
 
         routing:
-            # Symfony\Component\Mailer\Messenger\SendEmailMessage: async
-            # Symfony\Component\Notifier\Message\ChatMessage: async
-            # Symfony\Component\Notifier\Message\SmsMessage: async
+            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            Symfony\Component\Notifier\Message\ChatMessage: async
+            Symfony\Component\Notifier\Message\SmsMessage: async
             App\Catalogue\Domain\Model\Messages\ProductOrdered: manufacturing
 
             # Route your messages to the transports

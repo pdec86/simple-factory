@@ -6,7 +6,7 @@ namespace App\Catalogue\Domain\Model\Messages;
 
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 
-class ProductOrdered implements \Serializable
+class ProductOrdered implements \Serializable, AmqpMessageInterface
 {
     private ?string $productId;
 
@@ -26,6 +26,11 @@ class ProductOrdered implements \Serializable
     public function getQuantity(): int
     {
         return $this->quantity;
+    }
+
+    public function getRoutingKey(): string
+    {
+        return 'product.ordered';
     }
 
     /**

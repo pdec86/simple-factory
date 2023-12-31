@@ -3,13 +3,17 @@
 /.env.local
 /.env.local.php
 /.env.*.local
-/fonts/
 /config/secrets/
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
+
+/fonts/*
+!/fonts/.gitignore
+/messengerLogs/*
+!/messengerLogs/.gitignore
 
 ###> phpunit/phpunit ###
 /phpunit.xml

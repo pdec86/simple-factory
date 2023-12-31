@@ -20,7 +20,7 @@ class ProductHandler
      * @throws ProductNotFoundException
      */
     #[AsMessageHandler(fromTransport: 'manufacturing', handles: ProductOrdered::class)]
-    public function handleProductOreder(ProductOrdered $message): void
+    public function handleProductOrdered(ProductOrdered $message): void
     {
         $this->factoryManager->startManufacturingSpecificProductModel(
             $message->getSpecificProductId(),

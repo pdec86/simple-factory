@@ -9,15 +9,12 @@ use App\Catalogue\Application\Model\SpecificProductModelDTO;
 use App\Catalogue\Domain\Model\Exceptions\ProductNotFoundException;
 use App\Catalogue\Domain\Model\Messages\ProductOrdered;
 use App\Catalogue\Domain\Model\Product;
-use App\Catalogue\Domain\Model\SpecificProductModel;
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Catalogue\Domain\Service\CreateProductService;
 use App\Catalogue\Domain\Service\CreateSpecificProductModelService;
 use App\Catalogue\Infrastructure\Repository\ProductRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
-use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class ProductManager
@@ -60,9 +57,7 @@ class ProductManager
 
     public function orderSpecificProductModel(SpecificProductId $id, int $quantity): void
     {
-        $this->bus->dispatch((new Envelope(new ProductOrdered($id->getValue(), $quantity)))->with(
-            new AmqpStamp('product.ordered')
-        ));
+        $this->bus->dispatch(new ProductOrdered($id->getValue(), $quantity));
     }
 
     /**

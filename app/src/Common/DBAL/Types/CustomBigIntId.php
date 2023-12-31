@@ -45,6 +45,6 @@ abstract class CustomBigIntId extends Type
             return null;
         }
 
-        return (string) $value->getId();
+        return (string) $value->getValue();
     }
 }

@@ -43,6 +43,7 @@ services:
       - APP_ENV=dev
       - APP_ENV_FILE=/run/secrets/app_env
       - APP_SECRET_FILE=/run/secrets/app_secret
+      - FONT_OCR_B_LIKE_FILENAME=${FONT_OCR_B_LIKE_FILENAME}
       - DB_USER_FILE=/run/secrets/db_user
       - DB_PASS_FILE=/run/secrets/db_pass
       - DATABASE_HOST=factory-db

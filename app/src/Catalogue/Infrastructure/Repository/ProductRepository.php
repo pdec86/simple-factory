@@ -6,6 +6,7 @@ namespace App\Catalogue\Infrastructure\Repository;
 
 use App\Catalogue\Domain\Model\Product;
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
+use App\Common\Domain\Model\ValueObject\CodeEan;
 use Doctrine\ORM\EntityRepository;
 
 class ProductRepository extends EntityRepository
@@ -25,6 +26,24 @@ class ProductRepository extends EntityRepository
         if (!$includeDiscontinued) {
             $queryBuilder->andWhere($expr->isNull('product.discontinued'));
         }
+        
+        $query = $queryBuilder->getQuery();
+        
+        return $query->getOneOrNullResult();
+    }
+
+    /**
+     * @return Product[]
+     */
+    public function fetchByCodeEan(CodeEan $codeEan): ?Product
+    {
+        $queryBuilder = $this->createQueryBuilder('product');
+        $expr = $queryBuilder->expr();
+
+        $queryBuilder->select('product')
+            ->innerJoin('product.variants', 'variant')
+            ->andWhere($expr->eq('variant.codeEan.code', ':codeEan'))
+            ->setParameter('codeEan', $codeEan->getCode());
         
         $query = $queryBuilder->getQuery();
         
