@@ -88,7 +88,7 @@ class ProductController extends AbstractController
         return $this->json(['variant' => $variant]);
     }
 
-    #[Route('/{productId}/variant/{codeEan}/buy/{quantity}', name: 'catalogue_product_variants_create', methods: ['POST'],
+    #[Route('/{productId}/variant/{codeEan}/buy/{quantity}', name: 'catalogue_product_variants_buy', methods: ['POST'],
         condition: "request.headers.get('Accept') matches '/application\\\\/json/'")]
     public function catalogueBuyProductVariant(
         int $productId,
