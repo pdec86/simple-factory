@@ -18,7 +18,6 @@ APP_RUNTIME_ENV=$APP_ENV bin/console secrets:decrypt-to-local --force
 
 bin/console doctrine:migrations:migrate
 
-service supervisor stop
-service supervisor start
+(service supervisor stop || true) && service supervisor start
 
 php-fpm

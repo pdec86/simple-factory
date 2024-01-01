@@ -10,6 +10,7 @@ use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Catalogue\Infrastructure\Repository\ProductRepository;
 use App\Common\Domain\Model\ValueObject\CodeEan;
+use App\Common\Domain\Model\ValueObject\Dimensions;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -131,7 +132,19 @@ class Product
         }
     }
 
-    public function getVariantIdByCodeEAN(CodeEan $codeEan): ?SpecificProductId
+    public function checkVariantExists(SpecificProductId $specificProductId): bool
+    {
+        foreach ($this->variants as $variant)
+        { 
+            if ($variant->getId()->equals($specificProductId)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getVariantIdByCodeEAN(CodeEan $codeEan): SpecificProductId
     {
         foreach ($this->variants as $variant)
         { 
@@ -140,7 +153,19 @@ class Product
             }
         }
 
-        return null;
+        throw new NoVariantExistsException('Variant does not exists in product.');
+    }
+
+    public function getVariantDimensions(SpecificProductId $specificProductId): Dimensions
+    {
+        foreach ($this->variants as $variant)
+        { 
+            if ($variant->getId()->equals($specificProductId)) {
+                return $variant->getDimensions();
+            }
+        }
+
+        throw new NoVariantExistsException('Variant does not exists in product.');
     }
 
     public function getVariantDiscontinuation(CodeEan $codeEan): ?\DateTimeImmutable

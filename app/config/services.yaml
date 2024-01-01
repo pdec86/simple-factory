@@ -24,6 +24,8 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Common/Domain/Model/'
             - '../src/Catalogue/Domain/Model/'
+            - '../src/Factory/Domain/Model/'
+            - '../src/Warehouse/Domain/Model/'
             - '../src/Kernel.php'
 
     # add more service definitions when explicit configuration is needed

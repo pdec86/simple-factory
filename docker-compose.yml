@@ -29,7 +29,7 @@ services:
       - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWD}
     ports:
-      - '8080:15672'
+      - 127.0.0.1:8080:15672
     networks:
       - factory-network
 

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Domain\Model;
 
-use App\Catalogue\Domain\Model\SpecificProductModel;
-
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
+use App\Common\Domain\Model\ValueObject\Dimensions;
+use App\Warehouse\Domain\Model\Exceptions\StorageAreaOccupiedException;
+use App\Warehouse\Domain\Model\Exceptions\StorageAreaTooSmallException;
 use App\Warehouse\Domain\Model\ValueObjects\ProductStorageId;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Embedded;
@@ -23,22 +24,27 @@ class ProductStorage
     #[Embedded(class: ProductStorageId::class, columnPrefix: "storageSpace")]
     private ?ProductStorageId $id = null;
 
-    #[ORM\Column(name: 'specificProductModelId', type: 'specific_product_id', length: 255, nullable: false)]
-    private SpecificProductId $specificProductModelId;
-
-    private SpecificProductModel $specificProductModel;
-
     #[ORM\Column(name: 'areaName', type: 'string', length: 100, nullable: false)]
     private string $areaName;
 
     #[ORM\Column(name: 'shelf', type: 'string', length: 100, nullable: false)]
     private string $shelf;
 
+    #[Embedded(class: Dimensions::class, columnPrefix: 'dimensions_')]
+    private Dimensions $dimensions;
+
+    #[ORM\Column(name: 'specificProductModelId', type: 'specific_product_id', length: 255, nullable: true)]
+    private ?SpecificProductId $specificProductModelId = null;
+
+    #[ORM\Column(name: 'maxQuantity', type: 'integer', nullable: false)]
+    private int $maxQuantity = 0;
+
     #[ORM\Column(name: 'quantity', type: 'integer', nullable: false)]
     private int $quantity = 0;
 
-    #[ORM\ManyToOne(targetEntity: StorageSpace::class, cascade: ['persist', 'merge', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: StorageSpace::class)]
     #[ORM\JoinColumn(name: 'storageSpaceId', referencedColumnName: 'storageSpaceId')]
+    #[Ignore]
     private StorageSpace $storageSpace;
 
     #[ORM\Column(name: 'createdAt', type: 'datetime_immutable', updatable: false)]
@@ -49,22 +55,21 @@ class ProductStorage
     #[Ignore]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    private function __construct()
+    private function __construct(StorageSpace $storageSpace)
     {
+        $this->storageSpace = $storageSpace;
     }
 
     public static function createWithBasicData(
-        SpecificProductModel $specificProductModel,
+        StorageSpace $storageSpace,
         string $areaName,
         string $shelf,
-        int $quantity
+        Dimensions $dimensions
     ): self {
-        $productStorage = new self();
-        $productStorage->specificProductModelId = $specificProductModel->getId();
-        $productStorage->specificProductModel = $specificProductModel;
+        $productStorage = new self($storageSpace);
         $productStorage->changeAreaName($areaName);
         $productStorage->changeShelf($shelf);
-        $productStorage->changeQuantity($quantity);
+        $productStorage->dimensions = $dimensions;
 
         return $productStorage;
     }
@@ -91,13 +96,111 @@ class ProductStorage
         $this->shelf = $name;
     }
 
-    public function changeQuantity(int $quantity): void
+    public function isPossibleToReserveForSpecificProduct(SpecificProductId $specificProductId, Dimensions $specificProductDimensions): bool
     {
-        if (0 > $quantity) {
-            throw new \DomainException('Quantity cannot be less then 0.');
+        if (
+            (
+                null === $this->specificProductModelId
+                || $this->specificProductModelId->equals($specificProductId)
+            )
+            || (
+                null !== $this->specificProductModelId
+                && 0 == $this->quantity
+            )
+        ) {
+           return $this->verifyDimensions($specificProductDimensions);
         }
 
-        $this->quantity = $quantity;
+        return false;
+    }
+
+    public function reserveForSpecificProduct(SpecificProductId $specificProductId, Dimensions $specificProductDimensions): void
+    {
+        if (!$this->isPossibleToReserveForSpecificProduct($specificProductId, $specificProductDimensions)) {
+            throw new StorageAreaOccupiedException('Area and shelf already occupied by other product.');
+        }
+
+        $this->specificProductModelId = $specificProductId;
+        $this->changeMaxQuantity($specificProductDimensions);
+    }
+
+    private function changeMaxQuantity(Dimensions $specificProductDimensions): void
+    {
+        $maxQuantity = 0;
+
+        if (!$this->verifyDimensions($specificProductDimensions)) {
+            throw new StorageAreaTooSmallException();
+        }
+
+        $productLength = $specificProductDimensions->getLength();
+        $productWidth = $specificProductDimensions->getWidth();
+
+        // TODO: Optimize for better product storage handling
+        if (
+            $this->dimensions->getLength() > $specificProductDimensions->getLength()
+            && $this->dimensions->getWidth() > $specificProductDimensions->getWidth()
+        ) {
+            $productLength = $specificProductDimensions->getLength();
+            $productWidth = $specificProductDimensions->getWidth();
+        } else if (
+            $this->dimensions->getLength() > $specificProductDimensions->getWidth()
+            && $this->dimensions->getWidth() > $specificProductDimensions->getLength()
+        ) {
+            $productLength = $specificProductDimensions->getWidth();
+            $productWidth = $specificProductDimensions->getLength();
+        }
+
+        $maxQuantityLength = (int) bcdiv($this->dimensions->getLength(), $productLength);
+        $maxQuantityWidth = (int) bcdiv($this->dimensions->getWidth(), $productWidth);
+        $maxQuantityHeight = (int) bcdiv($this->dimensions->getHeight(), $specificProductDimensions->getHeight());
+        $maxQuantity = $maxQuantityLength * $maxQuantityWidth * $maxQuantityHeight;
+
+        if (0 >= $maxQuantity) {
+            throw new \DomainException('Maximum quantity cannot be less or equal 0.');
+        }
+
+        if ($this->quantity > $maxQuantity) {
+            throw new \DomainException('Current quantity is larger. Free up occupied space.');
+        }
+
+        $this->maxQuantity = $maxQuantity;
+    }
+
+    private function verifyDimensions(Dimensions $specificProductDimensions): bool
+    {
+        if (
+            (
+                $this->dimensions->getLength() > $specificProductDimensions->getLength()
+                && $this->dimensions->getWidth() > $specificProductDimensions->getWidth()
+                && $this->dimensions->getHeight() > $specificProductDimensions->getHeight()
+            ) || (
+                $this->dimensions->getWidth() > $specificProductDimensions->getLength()
+                && $this->dimensions->getLength() > $specificProductDimensions->getWidth()
+                && $this->dimensions->getHeight() > $specificProductDimensions->getHeight()
+            )
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getQuantityLeft(): int
+    {
+        return $this->maxQuantity - $this->quantity;
+    }
+
+    public function addQuantity(int $quantity): void
+    {
+        if (0 > $quantity) {
+            throw new \DomainException('Quantity cannot be less than 0.');
+        }
+
+        if ($this->quantity + $quantity > $this->maxQuantity) {
+            throw new \DomainException('Quantity cannot be greater than possible maximum quantity.');
+        }
+
+        $this->quantity += $quantity;
     }
 
     public function getSpecificProductModelId(): SpecificProductId

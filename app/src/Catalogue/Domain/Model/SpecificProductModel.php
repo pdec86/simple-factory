@@ -6,7 +6,6 @@ namespace App\Catalogue\Domain\Model;
 
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
-use App\Catalogue\Infrastructure\Repository\SpecificProductModelRepository;
 use App\Common\Domain\Model\ValueObject\CodeEan;
 use App\Common\Domain\Model\ValueObject\Dimensions;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,7 +14,7 @@ use Symfony\Component\Clock\ClockAwareTrait;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
 #[ORM\Table(name: 't_salesSpecificProductModel')]
-#[ORM\Entity(repositoryClass: SpecificProductModelRepository::class)]
+#[ORM\Entity()]
 #[ORM\HasLifecycleCallbacks]
 class SpecificProductModel
 {
@@ -74,19 +73,9 @@ class SpecificProductModel
         return $this->codeEan;
     }
 
-    public function getLength(): string
+    public function getDimensions(): Dimensions
     {
-        return $this->dimensions->getLength();
-    }
-
-    public function getWidth(): string
-    {
-        return $this->dimensions->getWidth();
-    }
-
-    public function getHeight(): string
-    {
-        return $this->dimensions->getHeight();
+        return $this->dimensions;
     }
 
     public function getProductId(): ProductId

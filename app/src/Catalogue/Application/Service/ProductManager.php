@@ -42,6 +42,19 @@ class ProductManager
         );
     }
 
+    public function getProductBySpecificProductModelId(SpecificProductId $specificProductId): Product
+    {
+        /** @var ProductRepository $productRepository */
+        $productRepository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
+        $product = $productRepository->fetchSpecificProductModelId($specificProductId);
+
+        if (null === $product) {
+            throw new ProductNotFoundException();
+        }
+
+        return $product;
+    }
+
     public function createSpecificProductModel(SpecificProductModelDTO $specificProductModelDTO): SpecificProductId
     {
         $specificProductModelId = $this->createSpecificProductModelService->execute(
