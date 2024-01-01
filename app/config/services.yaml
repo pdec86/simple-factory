@@ -15,6 +15,7 @@ services:
             string $messengerLogsPath: '%kernel.project_dir%/messengerLogs/'
             string $fontsPath: '%kernel.project_dir%/fonts/'
             string $ocrBLikeFontName: '%env(string:FONT_OCR_B_LIKE_FILENAME)%'
+            string $sampleProductsCSVPath: '%kernel.project_dir%/importData/sampleProducts.csv'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

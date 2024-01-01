@@ -16,7 +16,7 @@ trait EanValidatorTrait
         }
         
         // Must consist of 13 (EAN) digits
-        if (!preg_match('/^\d{8,13}$/', $code)) {
+        if (!preg_match('/^(\d{8}|\d{13})$/', $code)) {
             throw new InvalidEanException("Provided code must have 8 or 13 digits.");
         }
 

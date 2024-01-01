@@ -12,15 +12,15 @@ RUN apt-get install -y libpq-dev libicu-dev libpng-dev libfreetype-dev librabbit
     && docker-php-ext-install gd bcmath pdo pdo_mysql intl \
     && docker-php-ext-enable ds gd bcmath pdo_mysql redis amqp sodium opcache
 
-#RUN apt-get update && \
-#  apt-get install -y ca-certificates curl gnupg && \
-#  mkdir -p /etc/apt/keyrings && \
-#  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-#
-#ARG NODE_MAJOR=20
-#RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-#RUN apt-get update && apt-get install nodejs -y
-#RUN npm install --global yarn
+RUN apt-get update && \
+ apt-get install -y ca-certificates curl gnupg && \
+ mkdir -p /etc/apt/keyrings && \
+ curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+
+ARG NODE_MAJOR=20
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+RUN apt-get update && apt-get install nodejs -y
+RUN npm install --global yarn
 
 # Install Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"

@@ -5,3 +5,4 @@ app_secret.txt
 db_pass.txt
 db_user.txt
 amqp_dsn.txt
+/DockerPHP/sampleData/products.csv

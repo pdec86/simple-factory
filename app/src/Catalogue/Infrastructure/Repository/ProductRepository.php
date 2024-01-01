@@ -56,7 +56,7 @@ class ProductRepository extends EntityRepository
     }
 
     /**
-     * @return Product[]
+     * @return Product|null
      */
     public function fetchByCodeEan(CodeEan $codeEan): ?Product
     {

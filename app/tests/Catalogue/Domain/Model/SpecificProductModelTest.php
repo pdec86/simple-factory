@@ -21,7 +21,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 11:30:00'), $clock);
             self::fail('Domain Exception should occur!');
         } catch (\DomainException $ex) {
@@ -30,7 +30,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 12:29:00'), $clock);
             self::fail('Domain Exception should occur!');
         } catch (\DomainException $ex) {
@@ -39,7 +39,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-11 12:30:00'), $clock);
             self::fail('Domain Exception should occur!');
         } catch (\DomainException $ex) {
@@ -48,7 +48,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-11 12:29:00'), $clock);
             self::fail('Domain Exception should occur!');
         } catch (\DomainException $ex) {
@@ -57,7 +57,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-09 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-10 12:30:00'), $clock);
 
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-11 12:35:00'));
@@ -69,7 +69,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 12:40:00'), $clock);
 
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:35:00'));
@@ -81,7 +81,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 12:40:00'), $clock);
 
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:35:00'));
@@ -99,7 +99,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 12:40:00'), $clock);
 
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:45:00'));
@@ -111,7 +111,7 @@ class SpecificProductModelTest extends TestCase
 
         try {
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+            $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
             $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 12:40:00'), $clock);
 
             $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:40:00'));
@@ -129,7 +129,7 @@ class SpecificProductModelTest extends TestCase
 
         // 1.
         $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
         $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 13:40:00'), $clock);
         self::assertEquals(new \DateTimeImmutable('2023-12-12 13:40:00'), $specificProductModel->getDiscontinuation());
 
@@ -139,7 +139,7 @@ class SpecificProductModelTest extends TestCase
 
         // 2.
         $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
         $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 13:45:00'), $clock);
         self::assertEquals(new \DateTimeImmutable('2023-12-12 13:45:00'), $specificProductModel->getDiscontinuation());
 
@@ -149,7 +149,7 @@ class SpecificProductModelTest extends TestCase
 
         // 3.
         $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
         $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 13:45:00'), $clock);
         self::assertEquals(new \DateTimeImmutable('2023-12-12 13:45:00'), $specificProductModel->getDiscontinuation());
 
@@ -159,7 +159,7 @@ class SpecificProductModelTest extends TestCase
 
         // 4.
         $clock = static::mockTime(new \DateTimeImmutable('2023-12-12 12:30:00'));
-        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan);
+        $specificProductModel = SpecificProductModel::createWithBasicData($product, $codeEan, '100', '20', '5.5');
         $specificProductModel->setDiscontinuation(new \DateTimeImmutable('2023-12-12 13:45:00'), $clock);
         self::assertEquals(new \DateTimeImmutable('2023-12-12 13:45:00'), $specificProductModel->getDiscontinuation());
 

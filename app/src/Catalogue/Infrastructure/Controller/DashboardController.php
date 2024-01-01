@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace App\Catalogue\Infrastructure\Controller;
 
-use App\Catalogue\Application\Model\ProductDTO;
-use App\Catalogue\Application\Model\SpecificProductModelDTO;
 use App\Catalogue\Application\Service\ProductManager;
-use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
-use App\Common\Domain\Model\ValueObject\CodeEan;
 use App\Common\Domain\Model\ValueObject\Dimensions;
 use App\Factory\Domain\Model\ManufactureProduct;
 use App\Warehouse\Application\Service\WarehouseManager;
@@ -24,22 +20,6 @@ class DashboardController extends AbstractController
    #[Route('/', name: 'catalogue_dashboard_index', methods: ['GET'])]
    public function catalogueIndex(ProductManager $productManager, WarehouseManager $warehouseManager): Response
    {
-      $codeEanRaw = '';
-      for ($i = 0; $i < 12; $i++) {
-         $codeEanRaw .= random_int(0, 9);
-      }
-      $codeEanRaw .= $this->checksum($codeEanRaw);
-
-      $productDTO = $productManager->createProduct(new ProductDTO(null, 'Test product ' . random_int(1, 1000)));
-      $specificProductId = $productManager->createSpecificProductModel(new SpecificProductModelDTO(
-         null,
-         $productDTO->id,
-         new CodeEan($codeEanRaw),
-         '100',
-         '20',
-         '5.5'
-      ));
-
       $storageName = 'Test storage ' . random_int(1, 1000);
       $areaName = 'Test area name ' . random_int(1, 1000);
       $shelf = (string) random_int(1, 10);
@@ -47,10 +27,7 @@ class DashboardController extends AbstractController
       $warehouseManager->createStorageSpace($storageName);
       $warehouseManager->createProductStorageSpace($storageName, $areaName, $shelf, $dimensions);
 
-      $quantity = random_int(1, 100);
-      $productManager->orderSpecificProductModel($specificProductId, $quantity);
-
-      return new Response("Created and ordered {$quantity} item(s) of product (#{$productDTO->id}) {$productDTO->name} and variant (#{$specificProductId->getValue()}).");
+      return $this->redirectToRoute('catalogue_product_index');
    }
 
    #[Route('/factory', name: 'factory_index', methods: ['GET'])]
@@ -81,13 +58,9 @@ class DashboardController extends AbstractController
    public function tmp(
       string $fontsPath,
       string $ocrBLikeFontName,
+      ProductManager $manager
    ): Response {
-      // $maxQuantityLength = (int) bcdiv('185', '100');
-      // $maxQuantityWidth = (int) bcdiv('106', '20');
-      // $maxQuantityHeight = (int) bcdiv('16', '5.5');
-      // $maxQuantity = (int) floor($maxQuantityLength * $maxQuantityWidth * $maxQuantityHeight);
-      // dd($maxQuantityLength, $maxQuantityWidth, $maxQuantityHeight, $maxQuantity);
-
+      
       return new Response();
    }
 

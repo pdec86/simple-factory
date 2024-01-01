@@ -69,7 +69,7 @@ class Dimensions
 
     private function checkDimensionalCorrectness(string $dimension): void
     {
-        if (1 !== preg_match('/^\d+(\.\d+)?$/', $dimension)) {
+        if (1 !== preg_match('/^\d+(\.\d{1,2})?$/', $dimension)) {
             throw new InvalidDimensionException('Dimension is not correct.');
         }
     }

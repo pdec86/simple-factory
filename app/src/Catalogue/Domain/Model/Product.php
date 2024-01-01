@@ -8,6 +8,7 @@ use App\Catalogue\Domain\Model\Exceptions\NoVariantExistsException;
 use App\Catalogue\Domain\Model\Exceptions\ProductDiscontinuedException;
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
+use App\Catalogue\Domain\Model\ValueObjects\SpecificProductModelData;
 use App\Catalogue\Infrastructure\Repository\ProductRepository;
 use App\Common\Domain\Model\ValueObject\CodeEan;
 use App\Common\Domain\Model\ValueObject\Dimensions;
@@ -130,6 +131,14 @@ class Product
         } else {
             throw new ProductDiscontinuedException('Product has been discontinued.');
         }
+    }
+
+    public function getAllVariants(callable $callback): array
+    {
+        $variants = $this->variants->toArray();
+        array_walk($variants, $callback);
+
+        return $variants;
     }
 
     public function checkVariantExists(SpecificProductId $specificProductId): bool

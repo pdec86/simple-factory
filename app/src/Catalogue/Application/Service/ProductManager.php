@@ -9,11 +9,13 @@ use App\Catalogue\Application\Model\SpecificProductModelDTO;
 use App\Catalogue\Domain\Model\Exceptions\ProductNotFoundException;
 use App\Catalogue\Domain\Model\Messages\ProductOrdered;
 use App\Catalogue\Domain\Model\Product;
+use App\Catalogue\Domain\Model\SpecificProductModel;
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Catalogue\Domain\Service\CreateProductService;
 use App\Catalogue\Domain\Service\CreateSpecificProductModelService;
 use App\Catalogue\Infrastructure\Repository\ProductRepository;
+use App\Common\Domain\Model\ValueObject\CodeEan;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -30,6 +32,65 @@ class ProductManager
     public function createProduct(ProductDTO $productDTO): ProductDTO
     {
         $product = $this->createProductService->execute($productDTO->name, $productDTO->description);
+
+        $entityManager = $this->registry->getManagerForClass(Product::class);
+        $entityManager->persist($product);
+        $entityManager->flush();
+
+        return new ProductDTO(
+            $product->getId()->getValue(),
+            $product->getName(),
+            $product->getDescription(),
+        );
+    }
+
+    /**
+     * @return ProductDTO[]
+     */
+    public function getAllProducts(): array
+    {
+        /** @var ProductRepository $repository */
+        $repository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
+        $products = $repository->findAll();
+
+        return array_map(fn (Product $product) => new ProductDTO(
+            $product->getId()->getValue(),
+            $product->getName(),
+            $product->getDescription()
+        ), $products);
+    }
+
+    /**
+     * @return SpecificProductModelDTO[]
+     */
+    public function getProductVariants(ProductId $productId): array
+    {
+        /** @var ProductRepository $repository */
+        $repository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
+        $product = $repository->fetchById($productId);
+
+        return $product->getAllVariants(fn (SpecificProductModel &$variant) => $variant = new SpecificProductModelDTO(
+            $variant->getId()->getValue(),
+            $product->getId()->getValue(),
+            $variant->getCodeEan(),
+            $variant->getDimensions()->getLength(),
+            $variant->getDimensions()->getWidth(),
+            $variant->getDimensions()->getHeight(),
+        ));
+    }
+
+    public function editProduct(ProductDTO $productDTO): ProductDTO
+    {
+        /** @var ProductRepository $productRepository */
+        $productRepository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
+        $product = $productRepository->fetchById(new ProductId($productDTO->id));
+
+        if (null === $product) {
+            throw new ProductNotFoundException();
+        }
+
+        $product->changeName($productDTO->name);
+        $product->changeDescription($productDTO->description);
 
         $entityManager = $this->registry->getManagerForClass(Product::class);
         $entityManager->persist($product);
@@ -68,9 +129,19 @@ class ProductManager
         return $specificProductModelId;
     }
 
-    public function orderSpecificProductModel(SpecificProductId $id, int $quantity): void
+    public function orderSpecificProductModelByCodeEan(CodeEan $codeEan, int $quantity): void
     {
-        $this->bus->dispatch(new ProductOrdered($id->getValue(), $quantity));
+        /** @var ProductRepository $productRepository */
+        $productRepository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
+        $product = $productRepository->fetchByCodeEan($codeEan);
+
+        if (null === $product) {
+            throw new ProductNotFoundException();
+        }
+        
+        $productOrdered = new ProductOrdered($product->getVariantIdByCodeEAN($codeEan)->getValue(), $quantity);
+
+        $this->bus->dispatch($productOrdered);
     }
 
     /**

@@ -22,6 +22,20 @@ class CodeEanTest extends TestCase
     public function testInvalidEan8()
     {
         try {
+            new CodeEan('7351353');
+            self::fail('Should not occcur');
+        } catch (\Throwable $ex) {
+            self::assertInstanceOf(InvalidEanException::class, $ex);
+        }
+
+        try {
+            new CodeEan('07351353');
+            self::fail('Should not occcur');
+        } catch (\Throwable $ex) {
+            self::assertInstanceOf(InvalidEanException::class, $ex);
+        }
+
+        try {
             new CodeEan('73513536');
             self::fail('Should not occcur');
         } catch (\Throwable $ex) {
