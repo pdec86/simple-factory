@@ -1,12 +1,18 @@
 services:
   factory-db:
     container_name: factory-db-c
-    image: mysql
+    image: mysql:8.0.30
     command: --default-authentication-plugin=caching_sha2_password
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", 'MYSQL_PWD=${MARIADB_ROOT_PASSWORD} mysqladmin ping -u root --silent || exit 1']
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWD}
       - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWD}
       - MYSQL_USER_FILE=/run/secrets/db_user
       - MYSQL_PASSWORD_FILE=/run/secrets/db_pass
       - MYSQL_DATABASE=${DB_NAME}
@@ -24,12 +30,19 @@ services:
     build:
       context: .
       dockerfile: DockerRabbitMQ/Dockerfile
-    # hostname: factory_messages_broker
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWD}
+      - RABBITMQ_USERNAME=${RABBIT_MQ_USER}
+      - RABBITMQ_PASSWORD=${RABBIT_MQ_PASSWD}
+      - RABBITMQ_PLUGINS=rabbitmq_management
+      - RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS=true
     ports:
-      - 127.0.0.1:8080:15672
+      - 127.0.0.1:8088:15672
     networks:
       - factory-network
 
@@ -39,9 +52,9 @@ services:
     build:
       context: .
       dockerfile: DockerPHP/Dockerfile
+      target: prod-build
     environment:
-      - APP_ENV=dev
-      - APP_ENV_FILE=/run/secrets/app_env
+      - APP_ENV=prod
       - APP_SECRET_FILE=/run/secrets/app_secret
       - FONT_OCR_B_LIKE_FILENAME=${FONT_OCR_B_LIKE_FILENAME}
       - DB_USER_FILE=/run/secrets/db_user
@@ -52,13 +65,14 @@ services:
     restart: always
     volumes:
       - 'factory-core:/var/www/html:rw'
-      - './DockerPHP/init-php.sh:/var/www/init-php.sh:r'
     networks:
       - factory-network
     depends_on:
-      - factory-db
+      factory-db:
+        condition: service_healthy
+      factory_messages_broker:
+        condition: service_healthy
     secrets:
-      - app_env
       - app_secret
       - db_user
       - db_pass
@@ -72,9 +86,10 @@ services:
       dockerfile: DockerNginx/Dockerfile
     restart: always
     ports:
-      - 127.0.0.1:8088:80
+      - 127.0.0.1:8080:80
     volumes:
-      - 'factory-core:/var/www/html:rw'
+      - 'factory-core:/var/www/html:ro'
+      - './DockerNginx/vhosts/php.conf:/opt/bitnami/nginx/conf/server_blocks/factory.conf:ro'
     networks:
       - factory-network
     depends_on:
