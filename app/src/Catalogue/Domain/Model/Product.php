@@ -6,9 +6,9 @@ namespace App\Catalogue\Domain\Model;
 
 use App\Catalogue\Domain\Model\Exceptions\NoVariantExistsException;
 use App\Catalogue\Domain\Model\Exceptions\ProductDiscontinuedException;
+use App\Catalogue\Domain\Model\Exceptions\VariantAlreadyExistsException;
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
-use App\Catalogue\Domain\Model\ValueObjects\SpecificProductModelData;
 use App\Catalogue\Infrastructure\Repository\ProductRepository;
 use App\Common\Domain\Model\ValueObject\CodeEan;
 use App\Common\Domain\Model\ValueObject\Dimensions;
@@ -124,10 +124,15 @@ class Product
         }
     }
 
-    public function addVariant(CodeEan $codeEan, string $length, string $witdh, string $height): void
+    public function addVariant(CodeEan $codeEan, string $name, string $length, string $witdh, string $height): void
     {
         if (null === $this->discontinued) {
-            $this->variants->add(SpecificProductModel::createWithBasicData($this, $codeEan, $length, $witdh, $height));
+            try {
+                $this->getVariantIdByCodeEAN($codeEan);
+                throw new VariantAlreadyExistsException();
+            } catch (NoVariantExistsException $noVariantExists) {
+                $this->variants->add(SpecificProductModel::createWithBasicData($this, $codeEan, $name, $length, $witdh, $height));
+            }
         } else {
             throw new ProductDiscontinuedException('Product has been discontinued.');
         }
@@ -135,8 +140,7 @@ class Product
 
     public function getAllVariants(callable $callback): array
     {
-        $variants = $this->variants->toArray();
-        array_walk($variants, $callback);
+        $variants = array_map($callback, $this->variants->toArray());
 
         return $variants;
     }

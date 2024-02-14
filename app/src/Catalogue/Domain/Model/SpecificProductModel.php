@@ -33,6 +33,9 @@ class SpecificProductModel
     #[ORM\JoinColumn(name: 'productId', referencedColumnName: 'productId')]
     private Product $product;
 
+    #[ORM\Column(name: 'name', type: 'string', length: 255, nullable: false)]
+    private string $name;
+
     #[ORM\Column(name: 'discontinued', type: 'datetimetz', nullable: true)]
     private ?\DateTimeImmutable $discontinued = null;
 
@@ -44,20 +47,22 @@ class SpecificProductModel
     #[Ignore]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    private function __construct(Product $product, CodeEan $codeEan)
+    private function __construct(Product $product, CodeEan $codeEan, string $name)
     {
         $this->product = $product;
         $this->codeEan = $codeEan;
+        $this->changeName($name);
     }
 
     public static function createWithBasicData(
         Product $product,
         CodeEan $codeEAN,
+        string $name,
         string $length,
         string $width,
         string $height
     ): self {
-        $product = new self($product, $codeEAN);
+        $product = new self($product, $codeEAN, $name);
         $product->dimensions = new Dimensions($length, $width, $height);
 
         return $product;
@@ -73,6 +78,11 @@ class SpecificProductModel
         return $this->codeEan;
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     public function getDimensions(): Dimensions
     {
         return $this->dimensions;
@@ -86,6 +96,16 @@ class SpecificProductModel
     public function getDiscontinuation(): ?\DateTimeImmutable
     {
         return $this->discontinued;
+    }
+
+    public function changeName(string $name): void
+    {
+        $name = trim($name);
+        if (0 === mb_strlen($name, 'UTF-8')) {
+            throw new \InvalidArgumentException('Name cannot be empty.');
+        }
+
+        $this->name = $name;
     }
 
     public function setDiscontinuation(\DateTimeImmutable $discontinuation): void

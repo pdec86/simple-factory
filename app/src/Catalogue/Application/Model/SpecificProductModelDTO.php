@@ -18,6 +18,9 @@ class SpecificProductModelDTO
     public readonly CodeEan $codeEan;
 
     #[Assert\NotBlank()]
+    public readonly string $name;
+
+    #[Assert\NotBlank()]
     public readonly string $length;
 
     #[Assert\NotBlank()]
@@ -30,6 +33,7 @@ class SpecificProductModelDTO
         ?string $id,
         int $productId,
         CodeEan $codeEan,
+        string $name,
         string $length,
         string $width,
         string $height,
@@ -37,6 +41,7 @@ class SpecificProductModelDTO
         $this->id = $id;
         $this->productId = $productId;
         $this->codeEan = $codeEan;
+        $this->name = $name;
         $this->length = $length;
         $this->width = $width;
         $this->height = $height;

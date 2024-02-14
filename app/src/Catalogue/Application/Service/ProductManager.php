@@ -69,10 +69,11 @@ class ProductManager
         $repository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
         $product = $repository->fetchById($productId);
 
-        return $product->getAllVariants(fn (SpecificProductModel &$variant) => $variant = new SpecificProductModelDTO(
+        return $product->getAllVariants(fn (SpecificProductModel $variant) => new SpecificProductModelDTO(
             $variant->getId()->getValue(),
             $product->getId()->getValue(),
             $variant->getCodeEan(),
+            $variant->getName(),
             $variant->getDimensions()->getLength(),
             $variant->getDimensions()->getWidth(),
             $variant->getDimensions()->getHeight(),
@@ -121,6 +122,7 @@ class ProductManager
         $specificProductModelId = $this->createSpecificProductModelService->execute(
             new ProductId($specificProductModelDTO->productId),
             $specificProductModelDTO->codeEan,
+            $specificProductModelDTO->name,
             $specificProductModelDTO->length,
             $specificProductModelDTO->width,
             $specificProductModelDTO->height,

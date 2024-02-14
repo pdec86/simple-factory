@@ -7,6 +7,7 @@ namespace App\Catalogue\Infrastructure\Controller;
 use App\Catalogue\Application\Model\ProductDTO;
 use App\Catalogue\Application\Model\SpecificProductModelDTO;
 use App\Catalogue\Application\Service\ProductManager;
+use App\Catalogue\Domain\Model\Exceptions\VariantAlreadyExistsException;
 use App\Catalogue\Domain\Model\ValueObjects\ProductId;
 use App\Common\Domain\Model\ValueObject\CodeEan;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +18,13 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route(path: '/product')]
 class ProductController extends AbstractController
 {
-    #[Route('', name: 'catalogue_product_index', methods: ['GET'],
+    public function __construct(
+        private string $fontsPath,
+        private string $ocrBLikeFontName,
+    ) {
+    }
+
+    #[Route('/index', name: 'catalogue_product_index', methods: ['GET'],
         condition: "request.headers.get('Accept') matches '/text\\\\/html/'")]
     public function catalogueProductsIndex(): Response
     {
@@ -83,9 +90,16 @@ class ProductController extends AbstractController
         if ($productId !== $specificProductModelDTO->productId) {
             throw new \RuntimeException('ID in path does not match product ID in DTO.');
         }
-        $variant = $productManager->createSpecificProductModel($specificProductModelDTO);
 
-        return $this->json(['variant' => $variant]);
+        try {
+            $variant = $productManager->createSpecificProductModel($specificProductModelDTO);
+
+            return $this->json(['variant' => $variant]);
+        } catch (VariantAlreadyExistsException $variantExists) {
+            return $this->json(['error' => [
+                'message' => 'Variant already exists'
+            ]], Response::HTTP_BAD_REQUEST);
+        }
     }
 
     #[Route('/{productId}/variant/{codeEan}/buy/{quantity}', name: 'catalogue_product_variants_buy', methods: ['POST'],

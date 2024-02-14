@@ -5,13 +5,12 @@ services:
     command: --default-authentication-plugin=caching_sha2_password
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", 'MYSQL_PWD=${MARIADB_ROOT_PASSWORD} mysqladmin ping -u root --silent || exit 1']
+      test: ["CMD-SHELL", 'MYSQL_PWD=${MYSQL_ROOT_PASSWORD} mysqladmin ping -u root --silent || exit 1']
       interval: 10s
       timeout: 10s
       retries: 5
       start_period: 5s
     environment:
-      - MYSQL_RANDOM_ROOT_PASSWORD=yes
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWD}
       - MYSQL_USER_FILE=/run/secrets/db_user
       - MYSQL_PASSWORD_FILE=/run/secrets/db_pass

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Catalogue\Infrastructure\Controller;
 
 use App\Catalogue\Application\Service\ProductManager;
+use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Common\Domain\Model\ValueObject\Dimensions;
 use App\Factory\Domain\Model\ManufactureProduct;
 use App\Warehouse\Application\Service\WarehouseManager;
@@ -18,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class DashboardController extends AbstractController
 {
    #[Route('/', name: 'catalogue_dashboard_index', methods: ['GET'])]
-   public function catalogueIndex(ProductManager $productManager, WarehouseManager $warehouseManager): Response
+   public function catalogueIndex(WarehouseManager $warehouseManager): Response
    {
       $storageName = 'Test storage ' . random_int(1, 1000);
       $areaName = 'Test area name ' . random_int(1, 1000);
@@ -52,16 +53,6 @@ class DashboardController extends AbstractController
       $all = $repository->findAll();
 
       return $this->json($all);
-   }
-
-   #[Route('/tmp', name: 'factory_ordered_tmp', methods: ['GET'])]
-   public function tmp(
-      string $fontsPath,
-      string $ocrBLikeFontName,
-      ProductManager $manager
-   ): Response {
-      
-      return new Response();
    }
 
    private function checksum(string $ean) {

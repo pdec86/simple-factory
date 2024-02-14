@@ -13,16 +13,6 @@ RUN apk add --no-cache ${PHPIZE_DEPS} libpq-dev icu-dev rabbitmq-c-dev libpng-de
     && docker-php-ext-enable gd bcmath pdo_mysql redis amqp sodium opcache \
     && apk del ${PHPIZE_DEPS}
 
-# RUN apt-get update && \
-#  apt-get install -y ca-certificates curl gnupg && \
-#  mkdir -p /etc/apt/keyrings && \
-#  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-
-# ARG NODE_MAJOR=20
-# RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-# RUN apt-get update && apt-get install nodejs -y
-# RUN npm install --global yarn
-
 # Install Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "if (hash_file('sha384', 'composer-setup.php') === 'edb40769019ccf227279e3bdd1f5b2e9950eb000c3233ee85148944e555d97be3ea4f40c3c2fe73b22f875385f6a5155') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
@@ -43,6 +33,8 @@ RUN chown -R www-data:www-data /var/www
 
 
 FROM base-build as dev-build
+
+RUN apk add --no-cache nodejs npm && npm remove ip
 
 VOLUME /var/www/html
 USER www-data

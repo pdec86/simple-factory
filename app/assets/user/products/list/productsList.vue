@@ -2,7 +2,36 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <!-- show-expand -->
+                <v-alert
+                    v-if="apiError"
+                    density="compact"
+                    type="warning"
+                    title="Warning"
+                    :text="apiError"
+                ></v-alert>
+
+                <v-menu
+                    open-on-hover
+                    >
+                    <template v-slot:activator="{ props }">
+                        <v-btn
+                        color="primary"
+                        v-bind="props"
+                        >
+                        Menu
+                        </v-btn>
+                    </template>
+
+                    <v-list>
+                        <v-list-item
+                            v-for="(item, index) in menuItems"
+                            :key="index"
+                            >
+                            <v-list-item-title><a :href="item.href">{{ item.title }}</a></v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+
                 <v-data-table
                     v-model:expanded="productVariantsExpanded"
                     :items="products"
@@ -38,7 +67,7 @@
                     <tr v-for="variant in productVariantsList" class="productVariant">
                         <td>{{ variant.length }} x {{ variant.width }} x {{ variant.height }}</td>
                         <td :colspan="columns.length - 2">
-                            {{ variant.codeEan.code }}
+                            {{ variant.name }} ({{ variant.codeEan.code }})
                         </td>
                         <td>
                             <v-icon
@@ -230,7 +259,7 @@
                                     </v-row>
                                 </v-container>
                                 <v-btn :disabled="!variantNameRef?.isValid || !variantEANRef?.isValid"
-                                color="blue-darken-1" variant="text" @click="createVariantSave">Create model</v-btn>
+                                    color="blue-darken-1" variant="text" @click="createVariantSave">Create model</v-btn>
                                 <v-spacer></v-spacer>
                             </v-card-actions>
                         </v-card>
@@ -253,6 +282,12 @@
         { title: 'Actions', key: 'actions', sortable: false },
     ];
 
+    const menuItems = [
+        {title: 'Factory', href: '/factory'},
+        {title: 'Warehouse', href: '/warehouse'},
+    ];
+
+    const apiError = ref(null);
     const buyQuantityRef = ref(null);
     const editedItemNameRef = ref(null);
     
@@ -315,7 +350,6 @@
         return store.state.mProductsList.list;
     });
     const productVariantsList = computed(() => {
-        console.log(store.state.mProductsList.productVariants);
         return store.state.mProductsList.productVariants;
     });
 
@@ -377,6 +411,7 @@
     }
 
     function save () {
+        apiError.value = null;
         store.dispatch('mProductsList/createProduct', editedItem);
         close();
     };
@@ -386,6 +421,7 @@
             productVariantsExpanded.pop();
         }
         
+        apiError.value = null;
         store.dispatch('mProductsList/getProductVariants', {
             productId: productId,
             resultCallback: function (productId) {
@@ -395,7 +431,13 @@
     }
 
     function createVariantSave () {
-        store.dispatch('mProductsList/createProductVariant', toRaw(newProductVariant));
+        apiError.value = null;
+        store.dispatch('mProductsList/createProductVariant', {
+            newProductVariant: toRaw(newProductVariant),
+            errorCallback: function(error) {
+                apiError.value = error?.response?.data?.error?.message ?? null;
+            },
+        });
         closeCreateVariant();
     };
 

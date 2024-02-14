@@ -79,20 +79,20 @@ class WarehouseManager
         $quantityLeft = $quantity;
 
         foreach ($storageSpaces as $storageSpace) {
-            list($areaName, $shelf) = $storageSpace->reserveAnyroductStorageSpace($specificProductId, $product->getVariantDimensions($specificProductId));
+            list($areaName, $shelf) = $storageSpace->reserveAnyProductStorageSpace($specificProductId, $product->getVariantDimensions($specificProductId));
             
             if (null !== $areaName && null !== $shelf) {
                 $storageQuantityLeft = $storageSpace->getProductStorageSpaceQuantityLeft($specificProductId, $areaName, $shelf);
                 
                 $occupyStorageQuantity = min($quantityLeft, $storageQuantityLeft);
-                $quantityLeft = $storageQuantityLeft - $occupyStorageQuantity;
+                $quantityLeft = $quantityLeft - $occupyStorageQuantity;
                 
                 $storageSpace->reserveProductStorageSpaceQuantity($specificProductId, $areaName, $shelf, $occupyStorageQuantity);
                 
                 $entityManager->persist($storageSpace);
             }
 
-            if (0 === $quantityLeft) {
+            if (0 >= $quantityLeft) {
                 break;
             }
         }

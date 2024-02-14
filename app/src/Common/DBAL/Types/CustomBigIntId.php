@@ -33,6 +33,8 @@ abstract class CustomBigIntId extends Type
             $value = stream_get_contents($value);
         }
 
+        $this->checkIsValidNumber($value);
+
         return $this->castToClass($value);
     }
 
@@ -45,6 +47,20 @@ abstract class CustomBigIntId extends Type
             return null;
         }
 
-        return (string) $value->getValue();
+        $dbValue = (string) $value->getValue();
+        $this->checkIsValidNumber($dbValue);
+
+        return $dbValue;
+    }
+
+    private function checkIsValidNumber(?string $value): void
+    {
+        if (null !== $value && preg_match('/\d+/', $value) == 0) { // matches 0 or false
+            throw new \LogicException('Value, if not null, then should be a valid numeric string.');
+        }
+
+        if (null !== $value && strlen($value) > 255) {
+            throw new \LogicException('Too long numeric string.');
+        }
     }
 }

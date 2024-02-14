@@ -36,10 +36,10 @@ class ProductStorage
     #[ORM\Column(name: 'specificProductModelId', type: 'specific_product_id', length: 255, nullable: true)]
     private ?SpecificProductId $specificProductModelId = null;
 
-    #[ORM\Column(name: 'maxQuantity', type: 'integer', nullable: false)]
+    #[ORM\Column(name: 'maxQuantity', type: 'bigint', nullable: false)]
     private int $maxQuantity = 0;
 
-    #[ORM\Column(name: 'quantity', type: 'integer', nullable: false)]
+    #[ORM\Column(name: 'quantity', type: 'bigint', nullable: false)]
     private int $quantity = 0;
 
     #[ORM\ManyToOne(targetEntity: StorageSpace::class)]
@@ -150,10 +150,17 @@ class ProductStorage
             $productWidth = $specificProductDimensions->getLength();
         }
 
-        $maxQuantityLength = (int) bcdiv($this->dimensions->getLength(), $productLength);
-        $maxQuantityWidth = (int) bcdiv($this->dimensions->getWidth(), $productWidth);
-        $maxQuantityHeight = (int) bcdiv($this->dimensions->getHeight(), $specificProductDimensions->getHeight());
+        $maxQuantityLength = (int) bcdiv($this->dimensions->getLength(),
+            0 == bccomp('0.0', $productLength, 2) ? '0.01' : $productLength
+        );
+        $maxQuantityWidth = (int) bcdiv($this->dimensions->getWidth(),
+            0 == bccomp('0.0', $productWidth, 2) ? '0.01' : $productWidth
+        );
+        $maxQuantityHeight = (int) bcdiv($this->dimensions->getHeight(),
+            0 == bccomp('0.0', $specificProductDimensions->getHeight(), 2) ? '0.01' : $specificProductDimensions->getHeight()
+        );
         $maxQuantity = $maxQuantityLength * $maxQuantityWidth * $maxQuantityHeight;
+        $maxQuantity = -1 == bccomp((string) PHP_INT_MAX, (string) $maxQuantity) ? PHP_INT_MAX : $maxQuantity;
 
         if (0 >= $maxQuantity) {
             throw new \DomainException('Maximum quantity cannot be less or equal 0.');

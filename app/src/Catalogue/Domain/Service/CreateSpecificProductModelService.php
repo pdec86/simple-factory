@@ -22,6 +22,7 @@ class CreateSpecificProductModelService
     public function execute(
         ProductId $productId,
         CodeEan $codeEan,
+        string $name,
         string $length,
         string $width,
         string $height
@@ -37,7 +38,7 @@ class CreateSpecificProductModelService
             throw new ProductNotFoundException();
         }
 
-        $product->addVariant($codeEan, $length, $width, $height);
+        $product->addVariant($codeEan, $name, $length, $width, $height);
 
         $entityManager->persist($product);
         $entityManager->flush();

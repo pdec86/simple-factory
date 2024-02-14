@@ -95,7 +95,7 @@ class StorageSpace
         $this->productsStorageSpaces->add(ProductStorage::createWithBasicData($this, $areaName, $shelf, $dimensions));
     }
 
-    public function reserveAnyroductStorageSpace(
+    public function reserveAnyProductStorageSpace(
         SpecificProductId $specificProductModelId,
         Dimensions $specificProductModeDimensions,
     ): array {

@@ -56,8 +56,9 @@ const moduleProductsList = {
                     }
                 });
         },
-        createProductVariant (context, newProductVariant) {
-            console.log('createProductVariant', newProductVariant);
+        createProductVariant (context, data) {
+            const newProductVariant = data.newProductVariant;
+            const errorCallback = data.errorCallback;
             const createProductVariantPath = '/product/' + newProductVariant.productId + '/variant';
 
             axios.post(createProductVariantPath, newProductVariant)
@@ -70,7 +71,7 @@ const moduleProductsList = {
                     }
                 });
         },
-        getProductVariants (context, data) {
+        getProductVariants (context, data, errorCallback = null) {
             const getProductVariantsPath = '/product/' + data.productId + '/variant';
 
             axios.get(getProductVariantsPath)
