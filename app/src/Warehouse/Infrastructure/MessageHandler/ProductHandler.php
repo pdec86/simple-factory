@@ -22,6 +22,7 @@ class ProductHandler
         $this->warehouseManager->reserveAnyProductStorageSpace(
             $message->getSpecificProductId(),
             $message->getQuantity(),
+            $message->getDimensions(),
         );
     }
 }

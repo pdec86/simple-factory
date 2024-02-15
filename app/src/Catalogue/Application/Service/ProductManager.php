@@ -16,6 +16,7 @@ use App\Catalogue\Domain\Service\CreateProductService;
 use App\Catalogue\Domain\Service\CreateSpecificProductModelService;
 use App\Catalogue\Infrastructure\Repository\ProductRepository;
 use App\Common\Domain\Model\ValueObject\CodeEan;
+use App\Common\Domain\Model\ValueObject\Dimensions;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -68,6 +69,10 @@ class ProductManager
         /** @var ProductRepository $repository */
         $repository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
         $product = $repository->fetchById($productId);
+
+        if (null === $product) {
+            throw new ProductNotFoundException();
+        }
 
         return $product->getAllVariants(fn (SpecificProductModel $variant) => new SpecificProductModelDTO(
             $variant->getId()->getValue(),
@@ -131,6 +136,22 @@ class ProductManager
         return $specificProductModelId;
     }
 
+    /**
+     * @return Dimensions
+     */
+    public function getSpecificProductModelDimensions(SpecificProductId $specificProductId): Dimensions
+    {
+        /** @var ProductRepository $productRepository */
+        $productRepository = $this->registry->getManagerForClass(Product::class)->getRepository(Product::class);
+        $product = $productRepository->fetchSpecificProductModelId($specificProductId);
+
+        if (null === $product) {
+            throw new ProductNotFoundException();
+        }
+
+        return $product->getVariantDimensions($specificProductId);
+    }
+
     public function orderSpecificProductModelByCodeEan(CodeEan $codeEan, int $quantity): void
     {
         /** @var ProductRepository $productRepository */
@@ -141,7 +162,12 @@ class ProductManager
             throw new ProductNotFoundException();
         }
         
-        $productOrdered = new ProductOrdered($product->getVariantIdByCodeEAN($codeEan)->getValue(), $quantity);
+        $specificProductModelId = $product->getVariantIdByCodeEAN($codeEan);
+        $productOrdered = new ProductOrdered(
+            $specificProductModelId->getValue(),
+            $quantity,
+            $product->getVariantDimensions($specificProductModelId),
+        );
 
         $this->bus->dispatch($productOrdered);
     }

@@ -7,6 +7,7 @@ namespace App\Factory\Application\Service;
 use App\Catalogue\Domain\Model\Exceptions\ProductNotFoundException;
 use App\Catalogue\Domain\Model\Product;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
+use App\Common\Domain\Model\ValueObject\Dimensions;
 use App\Factory\Domain\Model\ManufactureProduct;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -20,8 +21,11 @@ class FactoryManager
     /**
      * @throws ProductNotFoundException
      */
-    public function startManufacturingSpecificProductModel(SpecificProductId $specificProductId, int $quantity): void
-    {
+    public function startManufacturingSpecificProductModel(
+        SpecificProductId $specificProductId,
+        int $quantity,
+        Dimensions $dimensions,
+    ): void {
         /** @var ProductRepository $repository */
         $repository = $this->registry->getManagerForClass(Product::class)
             ->getRepository(Product::class);
@@ -32,7 +36,7 @@ class FactoryManager
             throw new ProductNotFoundException('Specific product model not found.');
         }
 
-        $manufactureProduct = new ManufactureProduct($specificProductId, $quantity);
+        $manufactureProduct = new ManufactureProduct($specificProductId, $quantity, $dimensions);
         $entityManager = $this->registry->getManagerForClass(ManufactureProduct::class);
         $entityManager->persist($manufactureProduct);
         $entityManager->flush();

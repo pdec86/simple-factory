@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Factory\Domain\Model;
 
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
+use App\Common\Domain\Model\ValueObject\Dimensions;
 use App\Factory\Domain\Model\ValueObjects\ManufactureProductId;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Embedded;
@@ -24,6 +25,9 @@ class ManufactureProduct
     #[ORM\Column(name: 'specificProductModelId', type: 'specific_product_id', length: 255, nullable: false)]
     private SpecificProductId $specificProductModelId;
 
+    #[Embedded(class: Dimensions::class, columnPrefix: 'specificProductDimensions_')]
+    private Dimensions $dimensions;
+
     #[ORM\Column(name: 'quantity', type: 'integer', nullable: false)]
     private int $quantity;
 
@@ -35,7 +39,7 @@ class ManufactureProduct
     #[Ignore]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    public function __construct(SpecificProductId $specificProductId, int $quantity)
+    public function __construct(SpecificProductId $specificProductId, int $quantity, Dimensions $dimensions)
     {
         if ($quantity <= 0) {
             throw new \LogicException('Quantity cannot be less or queal zero.');
@@ -43,6 +47,7 @@ class ManufactureProduct
 
         $this->specificProductModelId = $specificProductId;
         $this->quantity = $quantity;
+        $this->dimensions = $dimensions;
     }
 
     public function getId(): ManufactureProductId

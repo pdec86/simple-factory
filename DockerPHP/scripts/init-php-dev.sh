@@ -11,8 +11,6 @@ cat $DB_PASS_FILE | bin/console secrets:set DATABASE_PASS - && cat $DB_PASS_FILE
 cat $MESSENGER_TRANSPORT_DSN_FILE | bin/console secrets:set MESSENGER_TRANSPORT_DSN - && cat $MESSENGER_TRANSPORT_DSN_FILE | bin/console secrets:set MESSENGER_TRANSPORT_DSN - --local
 # APP_RUNTIME_ENV=$APP_ENV bin/console secrets:decrypt-to-local --force
 
-composer require --dev symfony/profiler-pack
-
 bin/console doctrine:migrations:migrate
 
 /usr/bin/supervisord -c /etc/supervisor/conf.d/sf_messenger.conf

@@ -11,8 +11,11 @@ use App\Warehouse\Domain\Model\Exceptions\StorageAreaTooSmallException;
 use App\Warehouse\Domain\Model\ValueObjects\ProductStorageId;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Embedded;
+use phpDocumentor\Reflection\Types\Nullable;
 use Symfony\Component\Clock\ClockAwareTrait;
 use Symfony\Component\Serializer\Attribute\Ignore;
+
+use function PHPSTORM_META\type;
 
 #[ORM\Table(name: 't_warehouseProductStorage')]
 #[ORM\Entity()]
@@ -32,6 +35,9 @@ class ProductStorage
 
     #[Embedded(class: Dimensions::class, columnPrefix: 'dimensions_')]
     private Dimensions $dimensions;
+
+    #[ORM\Column(name: 'specificProductDimensions', type: 'object', nullable: true)]
+    private ?Dimensions $specificProductDimensions = null;
 
     #[ORM\Column(name: 'specificProductModelId', type: 'specific_product_id', length: 255, nullable: true)]
     private ?SpecificProductId $specificProductModelId = null;
@@ -121,6 +127,7 @@ class ProductStorage
         }
 
         $this->specificProductModelId = $specificProductId;
+        $this->specificProductDimensions = $specificProductDimensions;
         $this->changeMaxQuantity($specificProductDimensions);
     }
 
@@ -186,7 +193,7 @@ class ProductStorage
                 && $this->dimensions->getHeight() > $specificProductDimensions->getHeight()
             )
         ) {
-            return true;
+            return null !== $this->specificProductDimensions ? $this->specificProductDimensions->equals($specificProductDimensions) : true;
         }
 
         return false;

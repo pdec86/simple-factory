@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Catalogue\Domain\Model\Messages;
 
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
+use App\Common\Domain\Model\ValueObject\Dimensions;
 
 class ProductOrdered implements \Serializable, AmqpMessageInterface
 {
@@ -12,10 +13,13 @@ class ProductOrdered implements \Serializable, AmqpMessageInterface
 
     private ?int $quantity;
 
-    public function __construct(?string $productId = null, ?int $quantity = 0)
+    private ?Dimensions $dimensions;
+
+    public function __construct(?string $productId = null, ?int $quantity = 0, ?Dimensions $dimensions = null)
     {
         $this->productId = $productId;
         $this->quantity = $quantity;
+        $this->dimensions = $dimensions;
     }
 
     public function getSpecificProductId(): SpecificProductId
@@ -26,6 +30,11 @@ class ProductOrdered implements \Serializable, AmqpMessageInterface
     public function getQuantity(): int
     {
         return $this->quantity;
+    }
+
+    public function getDimensions(): Dimensions
+    {
+        return $this->dimensions;
     }
 
     public function getRoutingKey(): string
@@ -49,6 +58,7 @@ class ProductOrdered implements \Serializable, AmqpMessageInterface
         return [
             'productId' => $this->productId,
             'quantity' => $this->quantity,
+            'dimensions' => serialize($this->dimensions),
         ];
     }
 
@@ -77,7 +87,12 @@ class ProductOrdered implements \Serializable, AmqpMessageInterface
             throw new \LogicException('Quantity must be a positive integer.');
         }
 
+        if (null === $data['dimensions']) {
+            throw new \LogicException('Dimensions must be provided.');
+        }
+
         $this->productId = (string) $data['productId'];
         $this->quantity = (int) $data['quantity'];
+        $this->dimensions = unserialize($data['dimensions']);
     }
 }

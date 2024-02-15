@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Warehouse\Application\Service;
 
-use App\Catalogue\Application\Service\ProductManager;
 use App\Catalogue\Domain\Model\Exceptions\ProductNotFoundException;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Common\Domain\Model\ValueObject\Dimensions;
@@ -16,7 +15,6 @@ class WarehouseManager
 {
     public function __construct(
         private ManagerRegistry $registry,
-        private ProductManager $productManager,
     ) {   
     }
 
@@ -59,8 +57,11 @@ class WarehouseManager
      * 
      * @throws ProductNotFoundException
      */
-    public function reserveAnyProductStorageSpace(SpecificProductId $specificProductId, int $quantity): int
-    {
+    public function reserveAnyProductStorageSpace(
+        SpecificProductId $specificProductId,
+        int $quantity,
+        Dimensions $dimensions,
+    ): int {
         /** @var ObjectRepository $repository */
         $repository = $this->registry->getManagerForClass(StorageSpace::class)->getRepository(StorageSpace::class);
         /** @var StorageSpace[] $storageSpaces */
@@ -70,16 +71,11 @@ class WarehouseManager
             throw new \DomainException('Storage space not found.');
         }
 
-        $product = $this->productManager->getProductBySpecificProductModelId($specificProductId);
-        if (null === $product) {
-            throw new \DomainException('Product not found.');
-        }
-
         $entityManager = $this->registry->getManagerForClass(StorageSpace::class);
         $quantityLeft = $quantity;
 
         foreach ($storageSpaces as $storageSpace) {
-            list($areaName, $shelf) = $storageSpace->reserveAnyProductStorageSpace($specificProductId, $product->getVariantDimensions($specificProductId));
+            list($areaName, $shelf) = $storageSpace->reserveAnyProductStorageSpace($specificProductId, $dimensions);
             
             if (null !== $areaName && null !== $shelf) {
                 $storageQuantityLeft = $storageSpace->getProductStorageSpaceQuantityLeft($specificProductId, $areaName, $shelf);

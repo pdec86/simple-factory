@@ -25,6 +25,7 @@ class ProductHandler
         $this->factoryManager->startManufacturingSpecificProductModel(
             $message->getSpecificProductId(),
             $message->getQuantity(),
+            $message->getDimensions(),
         );
     }
 }
