@@ -1,5 +1,6 @@
 services:
   factory-php:
     restart: no
-    volumes:
-      - './app:/var/www/html:rw'
+    build:
+      target: test-build
+

@@ -54,3 +54,10 @@ USER www-data
 
 ENTRYPOINT [ "/bin/bash" ]
 CMD [ "/var/www/scripts/init-php.sh" ]
+
+
+
+FROM prod-build as test-build
+
+ENTRYPOINT [ "/bin/bash" ]
+CMD [ "/var/www/scripts/init-php-test.sh" ]
