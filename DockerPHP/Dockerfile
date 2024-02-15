@@ -36,8 +36,17 @@ FROM base-build as dev-build
 
 RUN apk add --no-cache nodejs npm && npm remove ip
 
-VOLUME /var/www/html
+COPY app /var/www/html
+RUN chown -R www-data:www-data /var/www
+
 USER www-data
+WORKDIR /var/www/html
+
+RUN composer install -n && composer audit
+RUN bin/console assets:install --symlink public
+RUN npm install && npm audit && npm run build
+
+VOLUME /var/www/html
 
 ENTRYPOINT [ "/bin/bash" ]
 CMD [ "/var/www/scripts/init-php-dev.sh" ]
@@ -47,6 +56,7 @@ CMD [ "/var/www/scripts/init-php-dev.sh" ]
 FROM base-build as prod-build
 
 COPY app /var/www/html
+COPY --from=dev-build --chown=www-data:www-data /var/www/html/public/build /var/www/html/public/build
 RUN chown -R www-data:www-data /var/www
 
 VOLUME /var/www/html
