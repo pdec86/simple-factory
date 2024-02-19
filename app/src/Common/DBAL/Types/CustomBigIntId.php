@@ -55,7 +55,7 @@ abstract class CustomBigIntId extends Type
 
     private function checkIsValidNumber(?string $value): void
     {
-        if (null !== $value && preg_match('/\d+/', $value) == 0) { // matches 0 or false
+        if (null !== $value && preg_match('/^\d+$/', $value) == 0) { // matches 0 or false
             throw new \LogicException('Value, if not null, then should be a valid numeric string.');
         }
 

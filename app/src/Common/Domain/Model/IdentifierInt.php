@@ -22,7 +22,7 @@ class IdentifierInt implements IdentifierInterface
 
     public static function createFromString(string $value): static
     {
-        if (false == preg_match('/\d+/', $value)) {
+        if (false == preg_match('/^\d+$/', $value)) {
             throw new \RuntimeException('ID value must be a numeric string.');
         }
 

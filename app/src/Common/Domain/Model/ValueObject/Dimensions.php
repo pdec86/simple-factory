@@ -134,5 +134,9 @@ class Dimensions implements \Serializable
         $this->length = (string) $data['length'];
         $this->width = (string) $data['width'];
         $this->height = (string) $data['height'];
+
+        $this->checkDimensionalCorrectness($this->length);
+        $this->checkDimensionalCorrectness($this->width);
+        $this->checkDimensionalCorrectness($this->height);
     }
 }

@@ -19,7 +19,7 @@ abstract class CustomBigInt implements IdentifierInterface
 
     public function __construct(string $id)
     {
-        if (0 == preg_match('/\d+/', $id)) {
+        if (0 == preg_match('/^\d+$/', $id)) {
             throw new \LogicException('ID should be a valid numeric string');
         }
         $this->value = $id;
@@ -83,7 +83,7 @@ abstract class CustomBigInt implements IdentifierInterface
     /** @param array<string, mixed> $data */
     public function __unserialize(array $data): void
     {
-        if (null !== $data['value'] && 0 == preg_match('/\d+/', $data['value'])) { // matches 0 or false
+        if (null !== $data['value'] && 0 == preg_match('/^\d+$/', $data['value'])) { // matches 0 or false
             throw new \LogicException('ID, if not null, then should be a valid numeric string.');
         }
 

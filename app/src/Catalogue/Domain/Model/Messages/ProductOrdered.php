@@ -78,7 +78,7 @@ class ProductOrdered implements \Serializable, AmqpMessageInterface
     public function __unserialize(array $data): void
     {
         if (null === $data['productId'] ||
-            (null !== $data['productId'] && 0 == preg_match('/\d+/', $data['productId']))
+            (null !== $data['productId'] && 0 == preg_match('/^\d+$/', $data['productId']))
         ) { // matches 0 or false
             throw new \LogicException('ID must be not null and should be a valid numeric string.');
         }
