@@ -1,3 +1,21 @@
+FROM composer:lts as dev-deps
+WORKDIR /app
+RUN --mount=type=bind,source=app/composer.json,target=composer.json \
+    --mount=type=bind,source=app/composer.lock,target=composer.lock \
+    --mount=type=cache,target=/tmp/cache \
+    composer install --no-interaction --ignore-platform-req=ext-amqp --no-scripts
+
+
+
+FROM composer:lts as prod-deps
+WORKDIR /app
+RUN --mount=type=bind,source=app/composer.json,target=composer.json \
+    --mount=type=bind,source=app/composer.lock,target=composer.lock \
+    --mount=type=cache,target=/tmp/cache \
+    composer install --no-dev --no-interaction --optimize-autoloader --ignore-platform-req=ext-amqp --no-scripts
+
+
+
 FROM php:8.2.15-fpm-alpine3.19 as base-build
 
 # Use the default production configuration
@@ -12,13 +30,6 @@ RUN apk add --no-cache ${PHPIZE_DEPS} libpq-dev icu-dev rabbitmq-c-dev libpng-de
     && docker-php-ext-install gd bcmath pdo pdo_mysql intl \
     && docker-php-ext-enable gd bcmath pdo_mysql redis amqp sodium opcache \
     && apk del ${PHPIZE_DEPS}
-
-# Install Composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php -r "if (hash_file('sha384', 'composer-setup.php') === 'edb40769019ccf227279e3bdd1f5b2e9950eb000c3233ee85148944e555d97be3ea4f40c3c2fe73b22f875385f6a5155') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;" \
-    && php composer-setup.php \
-    && php -r "unlink('composer-setup.php');" \
-    && mv composer.phar /usr/local/bin/composer
 
 COPY DockerPHP/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY DockerPHP/sf_messenger.conf /etc/supervisor/conf.d/sf_messenger.conf
@@ -37,12 +48,12 @@ FROM base-build as dev-build
 RUN apk add --no-cache nodejs npm && npm remove ip
 
 COPY app /var/www/html
+COPY --from=dev-deps app/vendor/ /var/www/html/vendor
 RUN chown -R www-data:www-data /var/www
 
 USER www-data
 WORKDIR /var/www/html
 
-RUN composer install -n && composer audit
 RUN bin/console assets:install --symlink public
 RUN npm install && npm audit && npm run build
 
@@ -56,11 +67,15 @@ CMD [ "/var/www/scripts/init-php-dev.sh" ]
 FROM base-build as prod-build
 
 COPY app /var/www/html
+COPY --from=prod-deps app/vendor/ /var/www/html/vendor
 COPY --from=dev-build --chown=www-data:www-data /var/www/html/public/build /var/www/html/public/build
 RUN chown -R www-data:www-data /var/www
 
-VOLUME /var/www/html
 USER www-data
+
+RUN bin/console assets:install --symlink public
+
+VOLUME /var/www/html
 
 ENTRYPOINT [ "/bin/bash" ]
 CMD [ "/var/www/scripts/init-php.sh" ]

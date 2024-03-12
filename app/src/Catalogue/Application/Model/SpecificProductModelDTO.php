@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Catalogue\Application\Model;
 
+use App\Catalogue\Application\Model\Validators\EanCodeConstraint;
 use App\Common\Domain\Model\ValueObject\CodeEan;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -15,6 +16,7 @@ class SpecificProductModelDTO
     public readonly ?int $productId;
 
     #[Assert\NotBlank()]
+    #[EanCodeConstraint()]
     public readonly CodeEan $codeEan;
 
     #[Assert\NotBlank()]

@@ -1,0 +1,23 @@
+{
+    "extends": "@vue/tsconfig/tsconfig.dom.json",
+    "compilerOptions": {
+        "strict": false,
+        "composite": true,
+        "noEmit": false,
+        "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+        "baseUrl": ".",
+        "paths": {
+            "@sf/*": ["assets/src/*"]
+        },
+        "target": "es5",
+        "lib": [
+            "ES2015",
+            "es5",
+            "dom"
+        ],
+    },
+    "include": [
+        "assets/src/**/*.ts",
+        "assets/src/**/*.vue"
+    ]
+}

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Catalogue\Infrastructure\Controller;
 
-use App\Catalogue\Application\Service\ProductManager;
-use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Common\Domain\Model\ValueObject\Dimensions;
 use App\Factory\Domain\Model\ManufactureProduct;
 use App\Warehouse\Application\Service\WarehouseManager;
@@ -53,19 +51,5 @@ class DashboardController extends AbstractController
       $all = $repository->findAll();
 
       return $this->json($all);
-   }
-
-   private function checksum(string $ean) {
-      $even = true;
-      $esum = 0;
-      $osum = 0;
-
-      for ($i = strlen($ean) - 1; $i >= 0; $i--) {
-         if ($even)
-            $esum += $ean[$i];
-         else $osum += $ean[$i];
-            $even =! $even;
-      }
-      return (10 - ((3 * $esum + $osum) % 10)) % 10;
    }
 }

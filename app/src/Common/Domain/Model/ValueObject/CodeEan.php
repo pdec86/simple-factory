@@ -18,7 +18,6 @@ class CodeEan
 
     public function __construct(string $code)
     {
-        $this->validate($code);
         $this->code = $code;
     }
 
@@ -30,5 +29,10 @@ class CodeEan
     public function changeCode(string $code): self
     {
         return new self($code);
+    }
+
+    public function validate(): void
+    {
+        $this->validateEanCode($this->code);
     }
 }

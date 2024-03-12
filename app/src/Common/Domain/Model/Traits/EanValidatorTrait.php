@@ -8,7 +8,7 @@ use App\Common\Domain\Model\Exceptions\InvalidEanException;
 
 trait EanValidatorTrait
 {
-    private function validate(string $code): void
+    private function validateEanCode(string $code): void
     {
         // Must be a string
         if (!is_string($code)) {

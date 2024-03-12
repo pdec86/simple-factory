@@ -24,15 +24,14 @@ class ProductController extends AbstractController
     ) {
     }
 
-    #[Route('/index', name: 'catalogue_product_index', methods: ['GET'],
-        condition: "request.headers.get('Accept') matches '/text\\\\/html/'")]
+    #[Route('Index', name: 'catalogue_product_index', methods: ['GET'])]
     public function catalogueProductsIndex(): Response
     {
         return $this->render('catalogue/products/index.html.twig');
     }
 
-    #[Route('', name: 'catalogue_product_list', methods: ['GET'],
-        condition: "request.headers.get('Accept') matches '/application\\\\/json/'")]
+    #[Route('.{_format}', name: 'catalogue_product_list', methods: ['GET'],
+        format: 'json', requirements: ['_format' => 'json'])]
     public function catalogueProductsList(ProductManager $productManager): Response
     {
         $allProducts = $productManager->getAllProducts();
@@ -40,8 +39,8 @@ class ProductController extends AbstractController
         return $this->json(['products' => $allProducts]);
     }
 
-    #[Route('', name: 'catalogue_product_create', methods: ['POST'],
-        condition: "request.headers.get('Accept') matches '/application\\\\/json/'")]
+    #[Route('.{_format}', name: 'catalogue_product_create', methods: ['POST'],
+        format: 'json', requirements: ['_format' => 'json'])]
     public function catalogueCreateProduct(
         #[MapRequestPayload('json')] ProductDTO $productDTO,
         ProductManager $productManager
@@ -51,8 +50,8 @@ class ProductController extends AbstractController
         return $this->json(['product' => $product]);
     }
 
-    #[Route('/{productId}', name: 'catalogue_product_edit', methods: ['PUT'],
-        condition: "request.headers.get('Accept') matches '/application\\\\/json/'")]
+    #[Route('/{productId}.{_format}', name: 'catalogue_product_edit', methods: ['PUT'],
+        format: 'json', requirements: ['_format' => 'json'])]
     public function catalogueEditProduct(
         int $productId,
         #[MapRequestPayload('json')] ProductDTO $productDTO,
@@ -66,8 +65,8 @@ class ProductController extends AbstractController
         return $this->json(['product' => $product]);
     }
 
-    #[Route('/{productId}/variant', name: 'catalogue_product_variants_list', methods: ['GET'],
-        condition: "request.headers.get('Accept') matches '/application\\\\/json/'")]
+    #[Route('/{productId}/variant.{_format}', name: 'catalogue_product_variants_list', methods: ['GET'],
+        format: 'json', requirements: ['_format' => 'json'])]
     public function catalogueProductVariantsList(
         int $productId,
         ProductManager $productManager
@@ -80,8 +79,8 @@ class ProductController extends AbstractController
         return $this->json(['variants' => $variants]);
     }
 
-    #[Route('/{productId}/variant', name: 'catalogue_product_variants_create', methods: ['POST'],
-        condition: "request.headers.get('Accept') matches '/application\\\\/json/'")]
+    #[Route('/{productId}/variant.{_format}', name: 'catalogue_product_variants_create', methods: ['POST'],
+        format: 'json', requirements: ['_format' => 'json'])]
     public function catalogueCreateProductVariant(
         int $productId,
         #[MapRequestPayload('json')] SpecificProductModelDTO $specificProductModelDTO,
@@ -96,14 +95,12 @@ class ProductController extends AbstractController
 
             return $this->json(['variant' => $variant]);
         } catch (VariantAlreadyExistsException $variantExists) {
-            return $this->json(['error' => [
-                'message' => 'Variant already exists'
-            ]], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => 'Variant already exists'], Response::HTTP_BAD_REQUEST);
         }
     }
 
-    #[Route('/{productId}/variant/{codeEan}/buy/{quantity}', name: 'catalogue_product_variants_buy', methods: ['POST'],
-        condition: "request.headers.get('Accept') matches '/application\\\\/json/'")]
+    #[Route('/{productId}/variant/{codeEan}/buy/{quantity}.{_format}', name: 'catalogue_product_variants_buy', methods: ['POST'],
+        format: 'json', requirements: ['_format' => 'json'])]
     public function catalogueBuyProductVariant(
         int $productId,
         string $codeEan,

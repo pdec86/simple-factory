@@ -6,9 +6,7 @@ namespace App\Warehouse\Domain\Model;
 
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Common\Domain\Model\ValueObject\Dimensions;
-use App\Warehouse\Domain\Model\Exceptions\StorageAreaNotFoundException;
 use App\Warehouse\Domain\Model\Exceptions\StorageAreaOccupiedException;
-use App\Warehouse\Domain\Model\Exceptions\StorageAreaTooSmallException;
 use App\Warehouse\Domain\Model\ValueObjects\StorageSpaceId;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -78,6 +76,14 @@ class StorageSpace
         $this->name = $name;
     }
 
+    /**
+     * @return ProductStorage[] List of product storage spaces.
+     */
+    public function getProductStorageSpaces()
+    {
+        return $this->productsStorageSpaces;
+    }
+
     public function addProductStorage(
         string $areaName,
         string $shelf,
@@ -95,89 +101,41 @@ class StorageSpace
         $this->productsStorageSpaces->add(ProductStorage::createWithBasicData($this, $areaName, $shelf, $dimensions));
     }
 
-    public function reserveAnyProductStorageSpace(
-        SpecificProductId $specificProductModelId,
-        Dimensions $specificProductModeDimensions,
-    ): array {
-        foreach ($this->productsStorageSpaces as $productStorageSpace) {
-            if ($productStorageSpace->isPossibleToReserveForSpecificProduct($specificProductModelId, $specificProductModeDimensions)) {
-                $productStorageSpace->reserveForSpecificProduct($specificProductModelId, $specificProductModeDimensions);
-                return [$productStorageSpace->getAreaName(), $productStorageSpace->getShelf()];
-            }
-        }
-
-        return [null, null];
-    }
-
-    public function reserveProductStorageSpace(
-        SpecificProductId $specificProductModelId,
-        Dimensions $specificProductModeDimensions,
-        string $areaName,
-        string $shelf,
-    ): void {
+    public function findProductStorageSpace(string $areaName, string $shelf): ?ProductStorage
+    {
         foreach ($this->productsStorageSpaces as $productStorageSpace) {
             if (
                 $areaName === $productStorageSpace->getAreaName()
                 && $shelf === $productStorageSpace->getShelf()
             ) {
-                if (!$specificProductModelId->equals($productStorageSpace->getSpecificProductModelId())) {
-                    throw new StorageAreaOccupiedException('Area and shelf already occupied by other product.');
-                }
-
-                if (!$productStorageSpace->isPossibleToReserveForSpecificProduct($specificProductModelId, $specificProductModeDimensions)) {
-                    throw new StorageAreaTooSmallException();
-                }
-
-                $productStorageSpace->reserveForSpecificProduct($specificProductModelId, $specificProductModeDimensions);
-                return;
+                return $productStorageSpace;
             }
         }
 
-        throw new StorageAreaNotFoundException();
+        return null;
     }
 
     public function getProductStorageSpaceQuantityLeft(
         SpecificProductId $specificProductModelId,
-        string $areaName,
-        string $shelf,
+        ProductStorage $productStorageSpace,
     ): int {
-        foreach ($this->productsStorageSpaces as $productStorageSpace) {
-            if (
-                $areaName === $productStorageSpace->getAreaName()
-                && $shelf === $productStorageSpace->getShelf()
-            ) {
-                if (!$specificProductModelId->equals($productStorageSpace->getSpecificProductModelId())) {
-                    throw new StorageAreaOccupiedException('Area and shelf already occupied by other product.');
-                }
-                
-                return $productStorageSpace->getQuantityLeft();
-            }
+        if (!$specificProductModelId->equals($productStorageSpace->getSpecificProductModelId())) {
+            throw new StorageAreaOccupiedException('Area and shelf already occupied by other product.');
         }
-
-        throw new StorageAreaNotFoundException();
+        
+        return $productStorageSpace->getQuantityLeft();
     }
 
     public function reserveProductStorageSpaceQuantity(
         SpecificProductId $specificProductModelId,
-        string $areaName,
-        string $shelf,
+        ProductStorage $productStorageSpace,
         int $quantity,
     ): void {
-        foreach ($this->productsStorageSpaces as $productStorageSpace) {
-            if (
-                $areaName === $productStorageSpace->getAreaName()
-                && $shelf === $productStorageSpace->getShelf()
-            ) {
-                if (!$specificProductModelId->equals($productStorageSpace->getSpecificProductModelId())) {
-                    throw new StorageAreaOccupiedException('Area and shelf already occupied by other product.');
-                }
-                
-                $productStorageSpace->addQuantity($quantity);
-                return;
-            }
+        if (!$specificProductModelId->equals($productStorageSpace->getSpecificProductModelId())) {
+            throw new StorageAreaOccupiedException('Area and shelf already occupied by other product.');
         }
-
-        throw new StorageAreaNotFoundException();
+        
+        $productStorageSpace->addQuantity($quantity);
     }
 
     #[ORM\PrePersist]

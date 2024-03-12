@@ -11,11 +11,8 @@ use App\Warehouse\Domain\Model\Exceptions\StorageAreaTooSmallException;
 use App\Warehouse\Domain\Model\ValueObjects\ProductStorageId;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Embedded;
-use phpDocumentor\Reflection\Types\Nullable;
 use Symfony\Component\Clock\ClockAwareTrait;
 use Symfony\Component\Serializer\Attribute\Ignore;
-
-use function PHPSTORM_META\type;
 
 #[ORM\Table(name: 't_warehouseProductStorage')]
 #[ORM\Entity()]
@@ -120,7 +117,7 @@ class ProductStorage
         return false;
     }
 
-    public function reserveForSpecificProduct(SpecificProductId $specificProductId, Dimensions $specificProductDimensions): void
+    public function claimForSpecificProduct(SpecificProductId $specificProductId, Dimensions $specificProductDimensions): void
     {
         if (!$this->isPossibleToReserveForSpecificProduct($specificProductId, $specificProductDimensions)) {
             throw new StorageAreaOccupiedException('Area and shelf already occupied by other product.');

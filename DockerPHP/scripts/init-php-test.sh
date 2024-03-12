@@ -2,9 +2,10 @@
 set -e
 
 cd /var/www/html/
-composer install -n
+bin/console doctrine:migrations:migrate
 
-# bin/console secrets:list --reveal
-cat $APP_SECRET_FILE | bin/console secrets:set APP_SECRET - && cat $APP_SECRET_FILE | bin/console secrets:set APP_SECRET - --local
+/usr/bin/supervisord -c /etc/supervisor/conf.d/sf_messenger.conf
+
+docker-php-entrypoint php-fpm &
 
 bin/phpunit

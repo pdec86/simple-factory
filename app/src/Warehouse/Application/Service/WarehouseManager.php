@@ -8,6 +8,7 @@ use App\Catalogue\Domain\Model\Exceptions\ProductNotFoundException;
 use App\Catalogue\Domain\Model\ValueObjects\SpecificProductId;
 use App\Common\Domain\Model\ValueObject\Dimensions;
 use App\Warehouse\Domain\Model\StorageSpace;
+use App\Warehouse\Domain\Service\ReserveAnyProductStorageSpace;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectRepository;
 
@@ -15,6 +16,7 @@ class WarehouseManager
 {
     public function __construct(
         private ManagerRegistry $registry,
+        private ReserveAnyProductStorageSpace $reserveAnyProductStorageSpaceService,
     ) {   
     }
 
@@ -71,30 +73,11 @@ class WarehouseManager
             throw new \DomainException('Storage space not found.');
         }
 
-        $entityManager = $this->registry->getManagerForClass(StorageSpace::class);
-        $quantityLeft = $quantity;
-
-        foreach ($storageSpaces as $storageSpace) {
-            list($areaName, $shelf) = $storageSpace->reserveAnyProductStorageSpace($specificProductId, $dimensions);
-            
-            if (null !== $areaName && null !== $shelf) {
-                $storageQuantityLeft = $storageSpace->getProductStorageSpaceQuantityLeft($specificProductId, $areaName, $shelf);
-                
-                $occupyStorageQuantity = min($quantityLeft, $storageQuantityLeft);
-                $quantityLeft = $quantityLeft - $occupyStorageQuantity;
-                
-                $storageSpace->reserveProductStorageSpaceQuantity($specificProductId, $areaName, $shelf, $occupyStorageQuantity);
-                
-                $entityManager->persist($storageSpace);
-            }
-
-            if (0 >= $quantityLeft) {
-                break;
-            }
-        }
-
-        $entityManager->flush();
-
-        return $quantityLeft;
+        return $this->reserveAnyProductStorageSpaceService->execute(
+            $storageSpaces,
+            $specificProductId,
+            $quantity,
+            $dimensions
+        );
     }
 }

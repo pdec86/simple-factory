@@ -29,6 +29,7 @@ services:
     build:
       context: .
       dockerfile: DockerRabbitMQ/Dockerfile
+    restart: always
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 10s
@@ -52,16 +53,16 @@ services:
       context: .
       dockerfile: DockerPHP/Dockerfile
       target: prod-build
+    restart: always
     environment:
       - APP_ENV=prod
       - APP_SECRET_FILE=/run/secrets/app_secret
       - FONT_OCR_B_LIKE_FILENAME=${FONT_OCR_B_LIKE_FILENAME}
-      - DB_USER_FILE=/run/secrets/db_user
-      - DB_PASS_FILE=/run/secrets/db_pass
       - DATABASE_HOST=factory-db
       - DATABASE_NAME=${DB_NAME}
+      - DATABASE_USER_FILE=/run/secrets/db_user
+      - DATABASE_PASS_FILE=/run/secrets/db_pass
       - MESSENGER_TRANSPORT_DSN_FILE=/run/secrets/amqp_dsn
-    restart: always
     volumes:
       - 'factory-core:/var/www/html:rw'
     networks:
@@ -104,13 +105,11 @@ networks:
   factory-network:
 
 secrets:
-  app_env:
-    file: ./app_env.txt
   app_secret:
-    file: ./app_secret.txt
+    file: ./secrets/app_secret.txt
   db_user:
-    file: ./db_user.txt
+    file: ./secrets/db_user.txt
   db_pass:
-    file: ./db_pass.txt
+    file: ./secrets/db_pass.txt
   amqp_dsn:
-    file: ./amqp_dsn.txt
+    file: ./secrets/amqp_dsn.txt

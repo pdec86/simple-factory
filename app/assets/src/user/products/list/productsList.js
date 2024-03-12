@@ -2,10 +2,8 @@ import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import '@mdi/font/css/materialdesignicons.css';
 
 import { createApp } from 'vue';
-import App from './productsList.vue'
-
-// Vuex
-import { store } from '../../../store/index.js';
+import { createPinia } from 'pinia';
+import App from '@sf/user/products/list/productsList.vue';
 
 // Vuetify
 import 'vuetify/styles';
@@ -21,5 +19,6 @@ const vuetify = createVuetify({
       },
 });
 
+const pinia = createPinia();
 const app = createApp(App, {});
-app.use(vuetify).use(store).mount('#simplef-app');
+app.use(vuetify).use(pinia).mount('#simplef-app');

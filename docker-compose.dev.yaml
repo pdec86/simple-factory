@@ -2,9 +2,13 @@ services:
   factory-php:
     build:
       target: dev-build
+    environment:
+      - APP_ENV=dev
     volumes:
       - './app:/var/www/html:rw'
       - './DockerPHP/sampleData/products.csv:/var/www/html/importData/sampleProducts.csv:r'
+    ports:
+      - 127.0.0.1:3000:3000
   
   factory-nginx:
     volumes:

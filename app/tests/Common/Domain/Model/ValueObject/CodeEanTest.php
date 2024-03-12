@@ -22,28 +22,28 @@ class CodeEanTest extends TestCase
     public function testInvalidEan8()
     {
         try {
-            new CodeEan('7351353');
+            (new CodeEan('7351353'))->validate();
             self::fail('Should not occcur');
         } catch (\Throwable $ex) {
             self::assertInstanceOf(InvalidEanException::class, $ex);
         }
 
         try {
-            new CodeEan('07351353');
+            (new CodeEan('07351353'))->validate();
             self::fail('Should not occcur');
         } catch (\Throwable $ex) {
             self::assertInstanceOf(InvalidEanException::class, $ex);
         }
 
         try {
-            new CodeEan('73513536');
+            (new CodeEan('73513536'))->validate();
             self::fail('Should not occcur');
         } catch (\Throwable $ex) {
             self::assertInstanceOf(InvalidEanException::class, $ex);
         }
 
         try {
-            new CodeEan('73513538');
+            (new CodeEan('73513538'))->validate();
             self::fail('Should not occcur');
         } catch (\Throwable $ex) {
             self::assertInstanceOf(InvalidEanException::class, $ex);
@@ -53,14 +53,14 @@ class CodeEanTest extends TestCase
     public function testInvalidEan13()
     {
         try {
-            new CodeEan('0799439112765');
+            (new CodeEan('0799439112765'))->validate();
             self::fail('Should not occcur');
         } catch (\Throwable $ex) {
             self::assertInstanceOf(InvalidEanException::class, $ex);
         }
 
         try {
-            new CodeEan('0799439112767');
+            (new CodeEan('0799439112767'))->validate();
             self::fail('Should not occcur');
         } catch (\Throwable $ex) {
             self::assertInstanceOf(InvalidEanException::class, $ex);
